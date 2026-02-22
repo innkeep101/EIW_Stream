@@ -1,0 +1,160 @@
+# E.I. Werner — Hardware Stack
+
+**Broadcast Infrastructure** | Last Updated: February 21, 2026
+
+> ⚠️ **CONFIDENTIAL** — Not to be distributed without authorization
+
+---
+
+## Deployment Window
+
+**Athens, Greece** — March 15 – May 15, 2026
+
+Base of operations: Cozy Nomad Perfect Home, Athens (Flatio booking)
+- Confirmed internet: **195 Mbps down / 19 Mbps up** (Nomad365-certified)
+- Dedicated working space with ergonomic chair
+- Air conditioning, washer, full kitchen
+
+---
+
+## Project Goal
+
+E.I. Werner streams live from Athens across two content types:
+
+1. **Writing Streams** — 3x/week. Notion open, AI visible, the actual work happening on screen. Outside Inn lo-fi (Marwan's animation + Carson's music) runs as warmup and cooldown bookends.
+
+2. **Gaming Streams** — 1x/week. Community, personality, connection. World of Warcraft and beyond.
+
+**Platform Strategy:**
+- **YouTube** — Primary launch platform. All streams go here first. VODs, clips, the Outside Inn ambient loop when not live.
+- **Twitch** — Secondary. Added after the YouTube concept is proven and the workflow is tight. OBS pushes to both simultaneously when ready — no rebuild required.
+
+---
+
+## Hardware
+
+### Streaming Core
+
+| Item | Purpose |
+|------|---------|
+| Gigabyte AERO X16 (RTX 5070 / 32GB) | Main streaming machine — runs OBS, NVENC hardware encoding |
+| ASUS ZenScreen 15.6" | Secondary display for chat monitoring and dashboard |
+| Elgato Stream Deck + | One-touch scene switching, audio mixing, OBS hotkeys |
+| Elgato Key Light Neo | Face lighting for live streams |
+| Blue Yeti Nano | Voice capture for live streams |
+| Sony WH-1000XM5 | Audio monitoring and noise isolation |
+| KLIM Wind Cooling Pad | Thermal management for extended sessions |
+
+### GoPro Rig
+
+| Item | Purpose |
+|------|---------|
+| GoPro HERO13 Black | Travel content, Athens behind-the-scenes, POV footage |
+| Surf Bundle Accessories | Versatile mounting for adventure content |
+| Carbon Fiber Extension Pole | Extended reach shots |
+| Tripod + Ballhead | Stable stationary shots |
+
+### Storage
+
+| Item | Purpose |
+|------|---------|
+| SanDisk Extreme 2TB SSD | Primary — animation files, music loops, stream assets |
+| Samsung T9 2TB SSD | Backup — cloud sync, redundancy |
+| SanDisk Extreme 256GB microSD | GoPro footage capture |
+| SanDisk Extreme 64GB microSD | GoPro backup card |
+
+### Internet Redundancy
+
+| Item | Purpose |
+|------|---------|
+| GL.iNet GL-MT6000 Router | Traffic management, dual-WAN failover |
+| Netgear Nighthawk M7 Pro | 5G/LTE backup if apartment connection drops |
+| Bingfu MIMO Antenna | Cell signal boost if needed |
+| BENFEI USB-C Ethernet | Wired connection direct from apartment router |
+| Speedify (software) | Bonds wired + mobile, automatic failover |
+
+> **Note:** Athens apartment provides 195 Mbps down / 19 Mbps up via Flatio (Nomad365-certified). Upload headroom is adequate for 1080p streaming. Nighthawk M7 Pro is the failover layer — not the primary connection.
+
+### Power Backup
+
+| Item | Purpose |
+|------|---------|
+| Anker 737 (24,000mAh) | Laptop battery backup during brownouts |
+| TalentCell Mini UPS | Keeps router online during power blips |
+| ELECOM NESTOUT (15,000mAh) | Waterproof emergency backup |
+
+### Charging
+
+| Item | Purpose |
+|------|---------|
+| Anker 100W 3-Port GaN | Charges laptop + phone + accessories simultaneously |
+| Anker 7-in-1 USB-C Hub | Expands laptop connectivity |
+| Anker Prime 240W Cable | High-wattage laptop charging |
+
+### Protection & Travel
+
+| Item | Purpose |
+|------|---------|
+| Tortuga Pro 40L | Main travel bag with laptop compartment |
+| Alpaka Elements Tech Case | Waterproof cable/accessory organizer |
+| Laptop Cable Lock | Physical security |
+| ABUS Padlocks | Bag security for travel |
+| Silica Gel Packets | Humidity control |
+
+---
+
+## Software & Services
+
+| Service | Purpose |
+|---------|---------|
+| OBS Studio | Streaming software with NVENC encoding |
+| Restream | Simulcast distribution (YouTube now; Twitch added when ready) |
+| Speedify | Internet bonding and failover |
+| ExpressVPN | Security on public networks |
+
+---
+
+## Stream Modes (OBS Scenes)
+
+| Mode | What's Happening | Music |
+|------|-----------------|-------|
+| **Outside Inn Warmup** | Marwan's lo-fi animation, member names scrolling | Carson's music, 100% |
+| **Writing Stream** | Facecam + Notion/AI screen share, the actual work | Carson's music, 20–30% background |
+| **Gaming Stream** | Facecam + game capture | Carson's music, 20–30% background or off |
+| **Outside Inn Cooldown** | Same as warmup — wind-down, outro | Carson's music, 100% |
+| **Ambient Loop (offline)** | Outside Inn animation runs on YouTube when not live | Carson's music, 100% |
+
+> **Scene switching:** Warmup → Live → Cooldown → Ambient Loop. Managed via Stream Deck. Target: one-button transitions between all modes.
+
+---
+
+## Uptime Target
+
+**99.9%** — achieved through:
+
+- Apartment-verified 195 Mbps wired connection as primary
+- 5G/LTE Nighthawk M7 Pro as automatic failover
+- Speedify bonding layer
+- Laptop and router battery backup for brownouts
+- NVENC hardware encoding (GPU-based, low CPU overhead)
+
+---
+
+## Athens-Specific Notes
+
+- Apartment available **March 8, 2026** (booking from March 15)
+- Move-in: 14:00 / Move-out: 11:00
+- Air conditioning confirmed — important for equipment thermals in spring heat
+- Metro 10 min walk; groceries/pharmacy 2 min — low friction environment for focused work
+- No deposit. Utilities and internet included in rent.
+
+---
+
+## Related Documents
+
+| Document | Contents |
+|----------|----------|
+| **WhoIAm02.2026** | Full Evan Werner profile, context, patterns, financials |
+| **EIWBrandMaster02_20_2026.md** | Brand positioning, content strategy, monetization, Fourthwall |
+
+---
