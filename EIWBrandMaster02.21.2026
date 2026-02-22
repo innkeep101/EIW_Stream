@@ -1,20 +1,24 @@
-# E.I. Werner — Brand Document
-**February 2026 | Internal Use**
+# E.I. Werner — Project Master Document
+**February 2026 | Internal | Working Document — Subject to Update**
+
+> This is a temporary living document combining brand strategy, launch priorities, and operational context into one place. It will be updated as the project develops — most immediately once Carson confirms what he is delivering, which will inform several sections below. Do not treat anything marked as pending as settled.
 
 ---
 
 ## Table of Contents
-- [Part 1 — Who He Is](#part-1--who-he-is)
-- [Part 2 — The Brand](#part-2--the-brand)
-- [Part 3 — The Stream and Content](#part-3--the-stream-and-content)
-- [Part 4 — Community and Monetization](#part-4--community-and-monetization)
-- [Part 5 — Finances](#part-5--finances-internal)
-- [Part 6 — Key Dates](#part-6--key-dates)
-- [Part 7 — Stream Alerts](#part-7--stream-alerts)
+- [Section 1 — Who He Is](#section-1--who-he-is)
+- [Section 2 — The Brand](#section-2--the-brand)
+- [Section 3 — The Stream and Content](#section-3--the-stream-and-content)
+- [Section 4 — Community and Monetization](#section-4--community-and-monetization)
+- [Section 5 — Collaborator Philosophy](#section-5--collaborator-philosophy)
+- [Section 6 — Finances](#section-6--finances-internal)
+- [Section 7 — Stream Alerts](#section-7--stream-alerts)
+- [Section 8 — Launch Priorities & Roadmap](#section-8--launch-priorities--roadmap)
+- [Section 9 — Looking Ahead](#section-9--looking-ahead)
 
 ---
 
-## Part 1 — Who He Is
+## Section 1 — Who He Is
 
 ### The Writer
 
@@ -44,7 +48,7 @@ He believes pure passion, held without apology for long enough, becomes proof of
 
 ---
 
-## Part 2 — The Brand
+## Section 2 — The Brand
 
 ### Statement and Sign-Off
 
@@ -86,7 +90,7 @@ He is also someone who chose the nerdy path from a position of not needing to. H
 
 ---
 
-## Part 3 — The Stream and Content
+## Section 3 — The Stream and Content
 
 ### The Structure
 
@@ -128,7 +132,7 @@ Short-form platforms receive repurposed content only. The first outsourcing hire
 
 ---
 
-## Part 4 — Community and Monetization
+## Section 4 — Community and Monetization
 
 ### Platform — Fourthwall
 
@@ -154,7 +158,7 @@ The first 777 Scriveners receive a permanent numbered Founding Scrivener badge. 
 - Monthly patron-only livestream — 45 to 60 minutes, AMA-style, the conversation not the performance
 - Signal group thread — lives on their phone, the back table at the inn
 - Name in video credits
-- Royalty-free use of Outside Inn music tracks in their own content
+- Royalty-free use of Outside Inn music tracks in their own content *(pending Carson confirmation)*
 - Exclusive merch drops announced in Signal first
 - 14% merch discount
 - Writing review after 7 consecutive months — up to one chapter, privately or on stream, their choice
@@ -185,15 +189,7 @@ The EIW line is black and white, painterly, literary. The Outside Inn line is wa
 
 ---
 
-## Part 5 — Finances (Internal)
-
-### Burn Context
-
-Roughly $10,000 was invested in Outside Inn music and art — Carson Thatcher as composer, Marwan Hasnaoui as animator, and a failed earlier engagement before Marwan was found. This was spent before the brand exercise in February 2026 clarified that Outside Inn is an atmosphere layer, not the brand itself. The pivot was right. The cost of the pivot was $10k and several months. The lesson is the build-before-validate pattern: building to the scale of the person he wants to be before validating the premise. The fix is one question that precedes every new infrastructure build — what is the cheapest way to test whether this works before making it beautiful?
-
----
-
-## Part 5b — Collaborator Philosophy
+## Section 5 — Collaborator Philosophy
 
 ### How This Works With People
 
@@ -207,27 +203,25 @@ He wants to be relied upon. When he says something will happen, it happens. When
 
 The aspiration is simple: to be the boss and mentor he never had. Someone who gives real creative people real opportunities, pays them fairly, includes them in the upside, and treats the collaboration as a relationship worth protecting.
 
-### Carson Thatcher — Status Note
+### Carson Thatcher — Pending ⚠️
 
-Carson is finishing tracks as a favor following the business disagreement in February 2026. The friendship survived. The ongoing business partnership ended. What Carson will deliver, on what timeline, and under what terms for the remaining tracks is not yet confirmed. This section of the document will be updated once they speak — that conversation is a priority in the days immediately following launch. It is launch crunch time and this is intentionally held open rather than speculated on.
+Carson is finishing tracks as a favor following the business disagreement in February 2026. The friendship survived. The ongoing business partnership ended.
 
-> **TODO:** Speak with Carson. Confirm deliverables, timeline, and terms for remaining tracks. Update this section. Do not negotiate over text or email.
+**What Carson will deliver, on what timeline, and under what terms is not yet confirmed.** That conversation is happening in the next few days. It will inform several downstream decisions — the album development and distribution plan, the music licensing perk for Keepers, and the Outside Inn lo-fi loop catalog. This section and all dependent items will be updated once that conversation happens.
 
----
-
-## Part 6 — Key Dates
-
-| Date | Milestone |
-|---|---|
-| February 19, 2026 | Leaves Costa Rica |
-| March 3, 2026 | Stream launch — EIW streams begin, Fourthwall store live, memberships open |
-| March 15 – May 15, 2026 | Athens — two months to learn, build reps, and develop a stable sustainable rhythm |
-| June 1, 2026 | Begin gathering materials and applying for remote ecommerce infrastructure jobs — proactive, not desperate |
-| September 1, 2026 | Revenue evaluation checkpoint |
+> **TODO:** Speak with Carson. Confirm deliverables, timeline, and terms. Update this section and all downstream items marked *(pending Carson confirmation)*. Do not negotiate over text or email.
 
 ---
 
-## Part 7 — Stream Alerts
+## Section 6 — Finances (Internal)
+
+### Burn Context
+
+Roughly $10,000 was invested in Outside Inn music and art — Carson Thatcher as composer, Marwan Hasnaoui as animator, and a failed earlier engagement before Marwan was found. This was spent before the brand exercise in February 2026 clarified that Outside Inn is an atmosphere layer, not the brand itself. The pivot was right. The cost of the pivot was $10k and several months. The lesson is the build-before-validate pattern: building to the scale of the person he wants to be before validating the premise. The fix is one question that precedes every new infrastructure build — what is the cheapest way to test whether this works before making it beautiful?
+
+---
+
+## Section 7 — Stream Alerts
 
 Two alerts are active at launch. Both use animation assets built for the EIW brand. Each fires on screen during a live stream when the relevant membership event occurs.
 
@@ -245,8 +239,92 @@ The alert is understated and literary. The typewriter animation signals craft. T
 - **Sound:** Mom's vocals — the singing from the duck animation audio
 - **Text:** "[Name] has joined the Keepers. Kept, we keep on."
 
-The Keeper alert is warmer and more personal than the Scrivener alert. The duck family carries emotional weight — the mom singing over the baby duck waking up is a genuine moment. "Kept, we keep on" does double work: it nods to Kept, the retired trilogy that lives in the brand's DNA, and it names the Keeper ethos — the people who stay, who keep returning, who keep going alongside Evan.
+The Keeper alert is warmer and more personal. The duck family carries emotional weight — the mom singing over the baby duck waking up is a genuine moment. "Kept, we keep on" does double work: it nods to Kept, the retired trilogy that lives in the brand's DNA, and it names the Keeper ethos — the people who stay, who keep returning, who keep going alongside Evan.
 
 ---
 
-*E.I. Werner Brand Document — February 2026*
+## Section 8 — Launch Priorities & Roadmap
+
+### Launch [Beta] — 03/03/2026
+*Highest priority. Everything else waits for this.*
+
+1. Stable broadcast infrastructure — 24/7 hybrid model: Outside Inn lo-fi loop runs continuously when not live, transitions cleanly to live stream and back. OBS switching reliable, no dead air, no manual babysitting required.
+2. Discord launch — server live, channels structured, tested before the first viewer arrives
+3. Store launch — Fourthwall storefront live with EIW and Outside Inn product lines, files finalized and ready to go
+4. Channel intro video published — "You're Already There," the 18-year story, who this is for and why
+
+---
+
+### Fast Follow I [Beta] — 04/04/2026
+
+1. Branded stream alerts live — New Scrivener (typewriter animation, ding) and New Keeper (duck family animation, mom's vocals) tested and firing correctly on stream
+2. Animation refinement — Marwan's pixel art tightened based on real stream feedback
+3. Radio audio quality refinement — lo-fi loop mix and levels dialed in from live listening
+4. Develop album development and distribution plan — *(dependent on Carson conversation — see Section 5)*
+
+---
+
+### Stealthy Live — 04/04/2026
+
+1. Memberships go stealthy live — Scrivener ($7.77) and Keeper ($21.21) on Fourthwall, no announcement, soft open for early community
+2. Signal group launched — Keepers only, group dynamic established
+3. Badges launched — Founding Scrivener and Founding Keeper numbering active
+4. Album launched — Outside Inn Vol. 1 distributed *(dependent on Carson conversation)*
+
+---
+
+### Launch — 05/05/2026
+
+1. Membership social push — public announcement across all platforms, Founding badge scarcity messaging, drive first wave of sign-ups
+2. Album social push — Outside Inn Vol. 1 promoted alongside membership launch, full Fourthwall storefront promoted publicly
+
+---
+
+### Fast Follow II — 06/06/2026
+
+1. Begin gathering materials and applying for remote ecommerce infrastructure jobs — proactive, not desperate, to fund the endeavor
+2. Twitch launch — simulcast from OBS, no rebuild required
+3. Custom emotes — channel emotes live on Twitch
+4. Vinyl — print run based on demand signals from album launch; only if the numbers warrant it
+
+---
+
+### Key Dates
+
+| Date | Milestone |
+|---|---|
+| February 19, 2026 | Leaves Costa Rica |
+| March 3, 2026 | Stream launch — EIW streams begin, Fourthwall store live, memberships open |
+| March 15 – May 15, 2026 | Athens — two months to learn, build reps, and develop a stable sustainable rhythm |
+| June 1, 2026 | Begin gathering materials and applying for remote ecommerce infrastructure jobs — proactive, not desperate |
+| September 1, 2026 | Revenue evaluation checkpoint |
+
+---
+
+## Section 9 — Looking Ahead
+
+### E.I. HQ — Notion Command Center
+
+Evan has built an advanced Notion project called E.I. HQ and has been logging everything related to this project inside it: decisions, timelines, collaborator notes, brand iterations, stream planning. It serves two purposes simultaneously. First, it keeps the operation organized — one place for everything, built by someone who genuinely knows how to use Notion at a high level. Second, it is the long play for a Notion sponsorship or partnership. Streaming with Notion visibly open on screen three times a week, combined with documented mastery of the tool and real connections to leverage, makes the sponsorship conversation a real one when the viewership is there.
+
+The E.I. HQ build itself is content. The story of using Notion to organize an 18-year creative endeavor is exactly the kind of use case Notion would want in front of people. Document it well. Stream it openly. Let the relationship build toward the conversation.
+
+### Notion Partnership or Sponsorship
+
+Natural fit given the brand's visible Notion use on stream and Evan's unique mastery of the tool. Pursue when viewership justifies the conversation.
+
+### Virtual Currency & Watch Time Rewards
+
+Viewers earn virtual currency by watching — time in stream translates directly into unlockable rewards. The longer you stay, the more you accumulate. Currency can be spent on channel emotes and chat emojis, creating an incentive to watch that is tied to the experience itself rather than a purchase. This rewards genuine presence over transactions and gives non-paying viewers a meaningful way to participate and feel invested in the community.
+
+### Sustainable Album Model
+
+With current learnings, a new Outside Inn album can be made for $4–5k: approximately 14 tracks, original animation, emerging and lesser-known creatives given a real opportunity and a piece of the upside. This is not just a cost efficiency — it is what makes the model sustainable in the deeper sense. Finding young artists with something to prove, giving them a platform and backend participation, and making something together that neither could make alone. That charges Evan up. The creative energy that comes from that dynamic is part of what keeps the whole operation alive. Each album funds the next. The catalogue grows. The loop never goes stale. And every collaborator who comes through gets something real: a credit, an audience, and a stake in what gets built.
+
+---
+
+> **Document status:** Working draft. Primary pending item is the Carson conversation, expected in the next few days. Once that resolves, the album plan, Keeper music licensing perk, and Fast Follow I milestone 4 can all be confirmed and updated here.
+
+---
+
+*E.I. Werner Project Master Document — February 2026*
