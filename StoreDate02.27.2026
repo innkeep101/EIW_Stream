@@ -1,0 +1,152 @@
+# Outside Inn Studios — Store Inventory Master
+**Updated: February 27, 2026 | Living Document**
+
+> Single source of truth for the Fourthwall store: schema, inventory, pricing, margins, and operational rules. Designed for human reference and AI project context.
+
+---
+
+## Notion Database Schema
+
+| Property | Type | Purpose |
+|---|---|---|
+| **Name** | Title (text) | Freeform — give each product a name with flavor and personality. Not a rigid formula. The name should be scannable on its own (include product type), but the voice is yours. E.g. "Goose I, Cork Coaster" or "Geese, 10×10 Framed" — or something weirder if the mood strikes. |
+| **Type** | Single select | `Product` or `Bundle` |
+| **Collection** | Single select | Parent grouping: `Goose`, `There I`, `There II`, `Outside Inn` (expand as needed) |
+| **Product** | Single select | Physical SKU type: `Cork Coaster`, `Poster`, `Framed Poster`, `Mouse Pad`, `Gaming Mouse Pad`, `Desk Mat` |
+| **Dimensions** | Single select | Size where applicable: `10×10`, `18×24`, or blank for standard-sized items (coasters, mouse pads, desk mats) |
+| **Cost** | Number (USD) | Fourthwall production COGS (visible in their product designer when uploading art) |
+| **Price** | Number (USD) | Retail price — set by us, must be divisible by $0.07 (septimal pricing) |
+| **Margin** | Formula | `(Price - Cost) / Price` as percentage. Blank if Cost is empty. |
+| **Artist** | Single select | Royalty recipient: `Luiz`, `Marwan` (expand as needed) |
+| **File** | Files & media | High-res source artwork image |
+
+**Default view:** Table, grouped by Collection, sorted by Type (Product first, then Bundle).
+
+---
+
+## Pricing Rules
+
+All prices must be divisible by **$0.07** — rooted in the ONCE mythology's septimal (base-7) numeral system. This is brand DNA, not decoration.
+
+Membership discounts: Scriveners get 7% off merch. Keepers get 14% off.
+
+Royalty: **$0.77/unit** on all merch featuring a collaborator's artwork. Paid to the artist in the Artist field.
+
+---
+
+## Bundle Strategy
+
+Bundles use Fourthwall's native bundle feature. Priced as **buy 3, get 4th free** — bundle price = 3× the unit price of the included product. Bundle prices must also be $0.07-divisible (which they naturally are when the unit price is).
+
+Bundles appear as a single line item at checkout. Fourthwall handles prorated refunds automatically. If any item in a bundle goes out of stock, the entire bundle goes OOS.
+
+Bundles cannot contain other bundles. Not yet available on YouTube/FB/IG/TikTok shop integrations.
+
+---
+
+## Fourthwall COGS Reference
+
+Estimated production costs from Fourthwall catalog research (Feb 27, 2026). These are what Fourthwall charges per unit — includes production and fulfillment. **Confirm exact costs in the Fourthwall product designer when uploading art.**
+
+Additionally, every transaction incurs a **2.9% + $0.30 payment processing fee** (same as Shopify).
+
+| Product | FW COGS (Est.) | Confidence | Source |
+|---|---|---|---|
+| Cork Coaster | $5.44 | ✅ Confirmed | Fourthwall catalog listing |
+| Classic Mouse Pad (8.7"×7.1") | ~$7.50 | ⚠️ Estimate | Comparable sublimation products |
+| Poster (matte, unframed) | ~$7–10.50 | ⚠️ Estimate | PDF says "starts at $7", scales with size |
+| Gaming Mouse Pad (18"×16") | $10.50 | ✅ Confirmed | Fourthwall pricing PDF |
+| Framed Poster (10×10) | ~$20.35 | ⚠️ Estimate | PDF says "starts at $18.50", 10×10 is small format |
+| Desk Mat (15.5"×31.5") | $14.95 | ✅ Confirmed | Fourthwall catalog listing |
+| Framed Poster (18×24) | ~$38.00 | ⚠️ Low confidence | Extrapolated from size scaling, could be $35–42 |
+
+---
+
+## Margin Analysis
+
+All-in cost includes Fourthwall COGS + payment processing (2.9% of price + $0.30). Margin calculated on all-in cost. Royalty ($0.77/unit) shown separately.
+
+| Product | Dimensions | Price | FW COGS | Processing | All-In Cost | Gross Profit | Margin | After Royalty |
+|---|---|---|---|---|---|---|---|---|
+| Cork Coaster | — | $14.07 | $5.44 | $0.71 | $6.15 | $7.92 | 56% | $7.15 (51%) |
+| Classic Mouse Pad | — | $21.07 | ~$7.50 | $0.91 | ~$8.41 | $12.66 | 60% | $11.89 (56%) |
+| Poster (unframed) | 10×10 | $28.07 | ~$7.50 | $1.11 | ~$8.61 | $19.46 | 69% | $18.69 (67%) |
+| Gaming Mouse Pad | — | $28.07 | $10.50 | $1.11 | $11.61 | $16.46 | 59% | $15.69 (56%) |
+| Poster (unframed) | 18×24 | $42.07 | ~$10.50 | $1.52 | ~$12.02 | $30.05 | 71% | $29.28 (70%) |
+| Framed Poster | 10×10 | $49.07 | ~$20.35 | $1.72 | ~$22.07 | $27.00 | 55% | $26.23 (53%) |
+| Desk Mat | — | $49.49 | $14.95 | $1.74 | $16.69 | $32.80 | 66% | $32.03 (65%) |
+| Framed Poster | 18×24 | $98.07 | ~$38.00 | $3.14 | ~$41.14 | $56.93 | 58% | $56.16 (57%) |
+
+**Margin leaders:** Unframed posters (69–71%) and desk mat (66%). **Highest absolute profit per unit:** 18×24 framed poster (~$57). **Lowest margin:** 10×10 framed poster (55%), but still healthy.
+
+---
+
+## Current Inventory — 10 SKUs
+
+### Collection: Goose
+
+All artwork by Luiz. Square crops of individual geese and all three geese together from a single Luiz illustration.
+
+**Products (8):**
+
+| Name | Type | Product | Dimensions | Cost (Est.) | Price | Artist |
+|---|---|---|---|---|---|---|
+| Goose I, Cork Coaster | Product | Cork Coaster | — | $5.44 | $14.07 | Luiz |
+| Goose II, Cork Coaster | Product | Cork Coaster | — | $5.44 | $14.07 | Luiz |
+| Goose III, Cork Coaster | Product | Cork Coaster | — | $5.44 | $14.07 | Luiz |
+| Geese, Cork Coaster | Product | Cork Coaster | — | $5.44 | $14.07 | Luiz |
+| Goose I, 10×10 Framed | Product | Framed Poster | 10×10 | $20.35 | $49.07 | Luiz |
+| Goose II, 10×10 Framed | Product | Framed Poster | 10×10 | $20.35 | $49.07 | Luiz |
+| Goose III, 10×10 Framed | Product | Framed Poster | 10×10 | $20.35 | $49.07 | Luiz |
+| Geese, 10×10 Framed | Product | Framed Poster | 10×10 | $20.35 | $49.07 | Luiz |
+
+**Bundles (2):**
+
+| Name | Type | Product | Cost (Est.) | Price | Contents | Artist |
+|---|---|---|---|---|---|---|
+| Goose Coaster Set | Bundle | Cork Coaster | $21.76 | $42.21 | All 4 coasters (buy 3 get 4th free) | Luiz |
+| Goose Gallery | Bundle | Framed Poster | $81.40 | $147.21 | All 4 framed prints (buy 3 get 4th free) | Luiz |
+
+---
+
+## Planned Collections (Not Yet Built)
+
+These collections are referenced in the brand bible but have no inventory records yet.
+
+**There I** — Aspirational landscape frames from Luiz's full illustration. Multiple products at standard pricing.
+
+**There II** — Second set of frames, different crops from the same illustration.
+
+**Outside Inn** — TBD. Likely to include artwork from Marwan (pixel art, animation stills).
+
+**Prelaunch Exclusives** — Select items available only during prelaunch. Gone permanently after. Scarcity is real, not manufactured.
+
+---
+
+## Fourthwall Operational Notes
+
+**Collections** = curated product groups by theme. Each gets its own URL/page. Must be manually added to homepage via Featured Collection or Collection List sections — they don't auto-display. Can be time-limited (start/end dates) for exclusives.
+
+**Bundles** = multiple existing products sold as one line item at checkout. Pricing options: fixed price, percentage discount off combined value, or keep individual pricing. System prorates pricing across items for taxes/refunds. Cannot contain other bundles. If any item goes OOS, entire bundle goes OOS. Not yet available on YouTube/FB/IG/TikTok shop integrations.
+
+**Payment processing:** 2.9% + $0.30 per US credit card transaction. Varies for PayPal and other providers.
+
+**No monthly fees. No upfront costs. No platform percentage on physical products.** Fourthwall's margin is built into the COGS.
+
+---
+
+## Product Expansion Playbook
+
+When adding new products or collections:
+
+1. Every physical item is **Type: Product**. Every multi-product package is **Type: Bundle**.
+2. Bundle pricing = 3× unit price (buy 3 get 4th free). Must be $0.07-divisible.
+3. All prices must be divisible by **$0.07**.
+4. **Artist** determines royalty recipient ($0.77/unit).
+5. **Name** is freeform — make it scannable (include product type) but give it personality.
+6. Confirm COGS in Fourthwall product designer before finalizing Cost field.
+7. A single illustration can generate multiple collections and dozens of SKUs through different crops and product types. Start narrow, expand based on demand.
+
+---
+
+*Updated Feb 27, 2026. Source: Fourthwall catalog research, pricing PDF, brand bible, store planning session.*
