@@ -1,0 +1,332 @@
+# OIS Hardware & Software Master
+**Updated: Feb 28, 2026 | Living Document**
+
+---
+
+## Primary Machine
+
+### GIGABYTE AERO X16 (1WH93USC64AH) — Space Gray
+| Field | Detail |
+|---|---|
+| CPU | AMD Ryzen AI 7 350 — 4×5.0GHz Zen 5 + 4×3.5GHz Zen 5c |
+| GPU | NVIDIA RTX 5070 Laptop (Blackwell) — 8GB GDDR7, 85W TDP |
+| RAM | 32GB DDR5-5600 (2×16GB SO-DIMM) — upgradeable to 64GB |
+| Storage | 1TB PCIe Gen4 NVMe M.2 SSD + 1 open M.2 slot |
+| Display | 16" IPS WQXGA 2560×1600, 165Hz, 3ms, sRGB 100%, 400 nits |
+| Webcam | 1080p + Windows Hello IR (built-in — backup only) |
+| Wireless | Wi-Fi 6E + Bluetooth 5.3 |
+| OS | Windows 11 Home |
+| **Purchased** | Nov 26, 2025 — $1,463.05 + $173.39 (2yr plan) |
+
+**Ports:**
+| Port | Count | Speed | Notes |
+|---|---|---|---|
+| USB-A | 2 | 3.2 Gen1 (5Gbps) | Left side — use for Stream Deck, Facecam |
+| USB-A | 1 | 2.0 (480Mbps) | Right side — mic, low-bandwidth only |
+| USB-C / USB4 | 1 | 40Gbps | DP Alt Mode + PD charging |
+| HDMI | 1 | 2.1 | Direct monitor out |
+| RJ45 | 1 | Gigabit | Built-in — no adapter needed |
+| 3.5mm | 1 | — | Combo jack |
+
+⚠️ **Disable/uninstall GiMATE** — causes throttling, refresh drops, crashes.
+
+---
+
+## Displays
+
+### ASUS ZenScreen 15.6" (MB16ACV) — Portable
+| Field | Detail |
+|---|---|
+| Resolution | 1920×1080 FHD |
+| Panel | IPS, anti-glare |
+| Refresh | 60Hz |
+| Power | USB-C (bus powered — no outlet needed) |
+| Features | Eye Care, Flicker Free, Blue Light Filter, kickstand |
+| Use | Chat monitor / dashboard / OBS multiview |
+| **Purchased** | Nov 26, 2025 — $149.00 |
+
+### Samsung 22" Monitor (S22)
+| Field | Detail |
+|---|---|
+| Resolution | 1920×1080 FHD |
+| Connection | HDMI |
+| Use | Secondary/stationary desk monitor |
+| **Purchased** | Dec 11, 2025 — $75.85 |
+
+---
+
+## Camera
+
+### Elgato Facecam MK.2 — Primary Stream Camera
+| Field | Detail |
+|---|---|
+| Sensor | Sony — 1/2.8" |
+| Resolution | 1080p60 max |
+| Features | HDR, PTZ control (pan/tilt/zoom in software), fixed focus |
+| Connection | USB-A (use USB 3.2 Gen1 port) |
+| Software | Camera Hub (Elgato) — integrates with OBS |
+| Use | Primary facecam for all streams |
+| **Status** | Arriving tomorrow/next day |
+
+---
+
+## Audio
+
+### Blue Yeti Nano — Primary Mic
+| Field | Detail |
+|---|---|
+| Type | USB condenser microphone |
+| Patterns | Cardioid + Omnidirectional |
+| Sample Rate | 24-bit / 48kHz |
+| Connection | USB-A (USB 2.0 port fine) |
+| Use | Primary stream/recording mic |
+| **Purchased** | Nov 28, 2025 — $65.01 |
+| **Status** | In hand |
+
+### Sony WH-1000XM5 — Headphones
+| Field | Detail |
+|---|---|
+| Type | Over-ear, wireless ANC |
+| Battery | 30 hours (ANC on) |
+| Connection | Bluetooth 5.2 / 3.5mm wired |
+| Features | Auto NC Optimizer, multipoint (2 devices), Speak-to-Chat |
+| Use | Monitoring, gaming, travel |
+| **Purchased** | Nov 28, 2025 — $268.77 |
+
+---
+
+## Stream Control
+
+### Elgato Stream Deck +
+| Field | Detail |
+|---|---|
+| Buttons | 8 LCD keys + 4 rotary dials + touch strip |
+| Connection | USB-A |
+| Use | Scene switching, audio control, countdown trigger, one-button go-live |
+| **Purchased** | Dec 1, 2025 — $159.99 |
+
+---
+
+## Lighting
+
+### Elgato Key Light Neo (Black)
+| Field | Detail |
+|---|---|
+| Type | LED panel, monitor-mounted |
+| Control | Manual (physical dial) or Wi-Fi (Control Center app / Stream Deck) |
+| Features | Adjustable brightness + color temp, no glare panel |
+| Mount | Clips to monitor — no desk footprint |
+| Use | Primary key light for facecam |
+| **Purchased** | Dec 1, 2025 — $59.99 |
+
+---
+
+## Storage
+
+### SanDisk 2TB Extreme Portable SSD — Primary
+| Field | Detail |
+|---|---|
+| Interface | USB-C, USB 3.2 Gen 2 (10Gbps) |
+| Speed | Up to 1050MB/s read |
+| Protection | IP65 water + dust resistant |
+| Use | Primary external storage — stream assets, recordings, projects |
+| **Purchased** | Nov 28, 2025 — $169.99 |
+
+### Samsung T9 2TB Portable SSD — Backup
+| Field | Detail |
+|---|---|
+| Interface | USB-C, USB 3.2 Gen 2×2 (20Gbps) |
+| Speed | Up to 2000MB/s read |
+| Use | Backup / overflow — faster than SanDisk when needed |
+| **Purchased** | Nov 28, 2025 — $179.99 |
+
+### SanDisk 256GB Extreme microSD
+| Field | Detail |
+|---|---|
+| Speed | V30, U3, A2 |
+| Use | GoPro primary card |
+| **Purchased** | Dec 1, 2025 — $27.99 |
+
+---
+
+## Internet & Networking
+
+### GL.iNet GL-MT6000 Flint 2 — Primary Router
+| Field | Detail |
+|---|---|
+| Standard | Wi-Fi 6 (802.11ax) — 2.4GHz + 5GHz |
+| WAN Ports | 2×2.5G Ethernet (dual-WAN failover) |
+| LAN Ports | 4×1G Ethernet |
+| Features | OpenWrt, VPN client/server, dual-WAN load balance + failover |
+| Use | Primary router — wired AERO via LAN, failover to M7 Pro via USB/WAN2 |
+| **Purchased** | Nov 26, 2025 — $112.99 |
+
+### NETGEAR Nighthawk M7 Pro — 5G Backup Hotspot
+| Field | Detail |
+|---|---|
+| Network | 5G mmWave + Sub-6, Wi-Fi 7 |
+| Carriers | AT&T + Verizon + International unlocked |
+| Use | Secondary WAN — failover when wired drops. Athens SIM goes here. |
+| **Purchased** | Nov 26, 2025 — $307.53 (Renewed) |
+
+### BENFEI USB-C to Ethernet Adapter
+| Field | Detail |
+|---|---|
+| Interface | USB-C → RJ45 Gigabit |
+| Use | Ethernet to AERO via USB-C hub when RJ45 port is occupied OR for other devices |
+| **Purchased** | Nov 28, 2025 — $8.49 |
+
+---
+
+## Power
+
+### Anker 737 Power Bank — 24,000mAh
+| Field | Detail |
+|---|---|
+| Capacity | 24,000mAh / 140W |
+| Ports | 2×USB-C (140W + 60W) + 1×USB-A (22.5W) |
+| Display | Smart display — shows wattage, charge %, time remaining |
+| Use | Laptop power backup — keeps AERO running if power drops during stream |
+| **Purchased** | Nov 28, 2025 — $74.99 |
+
+### TalentCell Mini UPS — 27,000mAh
+| Field | Detail |
+|---|---|
+| Capacity | 27,000mAh / 97.2Wh |
+| Output | DC 12V/9V + USB-A 18W + USB-C PD |
+| Use | Router UPS — keeps GL-MT6000 and M7 Pro online if power drops |
+| **Purchased** | Nov 28, 2025 — $51.19 |
+
+### Anker 100W USB-C Charger (3-port GaN)
+| Field | Detail |
+|---|---|
+| Ports | 2×USB-C + 1×USB-A |
+| Max Output | 100W (single port), shared when multiple in use |
+| Use | Travel wall charger — replaces multiple bricks |
+| **Purchased** | Dec 1, 2025 — $49.99 |
+
+---
+
+## Hubs & Adapters
+
+### Anker 7-in-1 USB-C Hub
+| Field | Detail |
+|---|---|
+| Ports | 4K HDMI + USB-C (85W PD passthrough) + 2×USB-A 5Gbps + microSD + SD |
+| Use | Expand AERO's single USB-C port — monitor + charging + extra USB-A |
+| Note | Plug into USB-C/USB4 port for full speed |
+| **Purchased** | Dec 1, 2025 — $25.00 |
+
+---
+
+## Thermal
+
+### KLIM Wind Cooling Pad
+| Field | Detail |
+|---|---|
+| Fans | 4 fans at 1200 RPM |
+| Connection | USB-A powered |
+| Use | Under AERO during long streams/gaming — keeps thermals in check |
+| **Purchased** | Nov 28, 2025 — $18.48 |
+
+---
+
+## Camera (Content / BTS)
+
+### GoPro HERO13 Black
+| Field | Detail |
+|---|---|
+| Video | Up to 5.3K60 / 4K120 / 2.7K240 |
+| Features | HyperSmooth 6.0, Enduro battery, 10-bit color, HDR |
+| Use | BTS content, travel footage, IRL stream potential, Athens deployment content |
+| Accessories | Surf Bundle, Carbon Fiber Pole, Tripod/Ballhead |
+
+---
+
+## Port Allocation — AERO X16 (Streaming Config)
+| Port | Assigned To | Notes |
+|---|---|---|
+| USB-A 3.2 Gen1 #1 | Elgato Facecam MK.2 | Needs Gen1 — don't use 2.0 |
+| USB-A 3.2 Gen1 #2 | Elgato Stream Deck + | |
+| USB-A 2.0 | Blue Yeti Nano | Audio = low bandwidth, 2.0 is fine |
+| USB-C (USB4) | Anker 7-in-1 Hub | Expands to: ZenScreen + PD charging + extra USB-A |
+| HDMI | ZenScreen OR Samsung 22" | Direct output |
+| RJ45 | Wired Ethernet | Primary internet — always wired when streaming |
+
+---
+
+## Software
+
+### Streaming & Broadcast
+| App | Use | Notes |
+|---|---|---|
+| OBS Studio | Primary broadcast — NVENC encoding | All scenes built here |
+| Restream | Simulcast relay → YouTube + Twitch | Free plan — 2 destinations |
+| Speedify | WAN bonding + failover | Bonds wired + 5G if needed |
+| ExpressVPN | VPN | Travel / security |
+
+### Stream Control & Assets
+| App | Use |
+|---|---|
+| Elgato Camera Hub | Facecam MK.2 control (PTZ, exposure, color) |
+| Elgato Stream Deck (software) | Button mapping, scene switch macros |
+| StreamElements | Overlay hosting — countdown timer URL, alerts |
+
+### Creative & Productivity
+| App | Use |
+|---|---|
+| Notion | Writing workspace — open on screen during writing streams |
+| Claude Max 5x | Brand ops, content strategy, document management |
+| xAI SuperGrok | AI research + drafting |
+
+### Infrastructure
+| App | Use |
+|---|---|
+| DigitalOcean VPS | 24/7 loop host — OBS headless, always-on |
+| GitHub | Document/config storage |
+
+---
+
+## Software Subscriptions — 2025 Business Expenses
+**Category Total: $1,510.96**
+
+| Date | Vendor | Description | Amount | Receipt | Status |
+|---|---|---|---|---|---|
+| Sep 2, 2025 | xAI | SuperGrok annual (Sep 2025 → Sep 2026) | $300.00 | 2896-3782 | ✅ Active through Sep 2026 |
+| Sep 8, 2025 | Notion | Recurring plan (OIS workspace) | $780.30 | G9BUBQMC-0003 | ✅ Active — recurring |
+| Nov 21, 2025 | Anthropic | Claude Max 5x | $108.38 | 2283-4137-2109 | ✅ — |
+| Nov 29, 2025 | ExpressVPN | VPN subscription | $105.91 | — | ✅ Active |
+| Nov 29, 2025 | Speedify | Unlimited 3-Year (Nov 2025 → Nov 2028) | $107.99 | 494187 | ✅ Active through Nov 2028 |
+| Dec 21, 2025 | Anthropic | Claude Max 5x | $108.38 | 2041-9602-8901 | ✅ — |
+
+### Subscription Notes
+- **Notion $780.30** — overpaid in 2025 due to accidental guest seat upgrades. **Corrected Feb 2026 — solo seat only going forward.** Annual cost should drop to ~$192/yr on Plus solo.
+- **Claude Max** — billed monthly at $108.38. Two charges in 2025 (Nov + Dec). Ongoing in 2026.
+- **Speedify** — prepaid 3 years, done. No renewals until Nov 2028.
+- **SuperGrok** — prepaid annual, done until Sep 2026.
+- **ExpressVPN** — confirm renewal date and cycle length.
+
+---
+
+## OBS Scene Architecture
+| Scene | Elements | Audio |
+|---|---|---|
+| **Outside Inn Warmup** | Holdt animation (loop) + countdown overlay | Music 100% |
+| **Writing Stream** | Facecam + Notion + animation (optional) | Music 20–30% |
+| **Gaming Stream** | Facecam + game capture | Music 20–30% or off |
+| **Cooldown** | Animation (loop) | Music 100% |
+| **Ambient Loop** | Animation (offline — YouTube 24/7) | Music 100% |
+
+*All scenes switchable via Stream Deck — one button per scene.*
+
+---
+
+## Deployment Notes
+- **Current:** White Plains, NY
+- **Athens:** ~Mar 11 – May 15, 2026 — Flatio apartment, 195/19 Mbps confirmed
+- **Internet strategy:** GL-MT6000 as primary router (wired WAN), M7 Pro as 5G failover on WAN2. Speedify bonds both if needed.
+- **Power strategy:** Anker 737 on AERO, TalentCell UPS on router stack. Stream survives brief outages without interruption.
+
+---
+
+*Updated Feb 28, 2026. Source: OIS expense ledger, Amazon orders, brand bible hardware section.*
