@@ -1,6 +1,6 @@
 # OIS Hardware & Software Master
 
-> **Updated:** Mar 3, 2026 | Living Document
+> **Updated:** Mar 3, 2026 (post-first-broadcast) | Living Document
 >
 > **Purpose:** Single source of truth for all Outside Inn Studios hardware, software, port allocation, and infrastructure decisions. Designed for human reference and AI project context. When something changes, a new version gets written.
 
@@ -27,6 +27,11 @@
 - [Software](#software)
 - [Software Subscriptions — 2025 Business Expenses](#software-subscriptions--2025-business-expenses)
 - [OBS Scene Architecture](#obs-scene-architecture)
+- [Stream Source Files](#stream-source-files)
+- [Operational Procedures](#operational-procedures)
+- [Issues Log — First Broadcast](#issues-log--first-broadcast-march-3-2026)
+- [Architecture Decisions — Updated](#architecture-decisions--updated)
+- [Known Issues & Fix Queue — Updated](#known-issues--fix-queue--updated)
 - [Deployment Notes](#deployment-notes)
 
 ---
@@ -392,8 +397,8 @@ These rules govern how devices connect to the AERO and prevent port conflicts.
 | App | Use | Notes |
 |---|---|---|
 | OBS Studio | Primary broadcast — NVENC encoding | All scenes built here |
-| Restream | Simulcast relay → YouTube + Twitch | Free plan — 2 destinations |
-| Speedify | WAN bonding + failover | Bonds wired + 5G if needed |
+| Restream | Simulcast relay → YouTube + Twitch | Standard plan (~$16/mo annual) — 3 destinations, no watermark |
+| Speedify | WAN bonding + failover | Installed but functionally inactive — see Deployment Notes for topology limitation |
 | ExpressVPN | VPN | Travel / security |
 
 ### Stream Control & Assets
@@ -402,7 +407,16 @@ These rules govern how devices connect to the AERO and prevent port conflicts.
 |---|---|
 | Elgato Camera Hub | Facecam MK.2 control (PTZ, exposure, color) |
 | Elgato Stream Deck (software) | Button mapping, scene switch macros |
-| StreamElements | Overlay hosting — countdown timer URL, alerts |
+| StreamElements | Alerts (future — not currently in use) |
+
+### Stream Overlay Sources (Local HTML — OBS Browser Sources)
+
+| File | Use | Font |
+|---|---|---|
+| countdown_alagard.html | Countdown timer to stream start — transparent overlay | Alagard |
+| patron_roll_typewriter.html | Typewriter-style patron name roll — groups of 7, fades, loops | Alagard |
+
+Both files live in `D:\StreamSourceFiles\` and load the Alagard font from `D:\StreamSourceFiles\SpratFonts\alagard.ttf`. Added as OBS Browser Sources (1920×1080, Local file, Allow transparency ON). The countdown requires manual TARGET time update in the HTML before each stream.
 
 ### Creative & Productivity
 
@@ -416,7 +430,7 @@ These rules govern how devices connect to the AERO and prevent port conflicts.
 
 | App | Use |
 |---|---|
-| DigitalOcean VPS | 24/7 loop host — OBS headless, always-on |
+| DigitalOcean VPS | 24/7 lo-fi loop host — FFmpeg stream-copy in tmux |
 | GitHub | Document/config storage |
 
 ---
@@ -448,13 +462,13 @@ These rules govern how devices connect to the AERO and prevent port conflicts.
 
 | Scene | Elements | Audio |
 |---|---|---|
-| **Outside Inn Warmup** | Holdt animation (loop) + countdown overlay | Music 100% |
-| **Writing Stream** | Facecam + Notion + animation (optional) | Music 20–30% |
-| **Gaming Stream** | Facecam + game capture | Music 20–30% or off |
-| **Cooldown** | Animation (loop) | Music 100% |
-| **Ambient Loop** | Animation (offline — YouTube 24/7) | Music 100% |
+| **Outside Inn Warmup** | Holdt animation (Media Source, loop) + countdown_alagard.html (Browser Source) + patron_roll_typewriter.html (Browser Source) | LofiLoop.wav (Media Source, loop) 100% |
+| **Writing Stream** | Facecam (Video Capture) + Notion (Window Capture) | LofiLoop.wav (Media Source, loop) 20–30% |
+| **Gaming Stream** | Facecam (Video Capture) + Game Capture | LofiLoop.wav 20–30% or off |
+| **Cooldown** | Holdt animation (Media Source, loop) | LofiLoop.wav (Media Source, loop) 100% |
+| **Ambient Loop** | VPS-managed — not an OBS scene. FFmpeg on DigitalOcean loops HoldtLoop.mp4 to Restream 24/7. | Baked into HoldtLoop.mp4 |
 
-All scenes switchable via Stream Deck — one button per scene.
+All local scenes switchable via Stream Deck — one button per scene. The Ambient Loop is not controlled by OBS; it runs independently on the VPS and is stopped/started manually via SSH when transitioning to/from live streams.
 
 ---
 
@@ -462,10 +476,143 @@ All scenes switchable via Stream Deck — one button per scene.
 
 - **Current:** White Plains, NY
 - **Athens:** ~Mar 11 – May 15, 2026 — Flatio apartment, 195/19 Mbps confirmed
-- **Internet strategy:** GL-MT6000 as primary router (wired WAN), M7 Pro as 5G failover on WAN2. Speedify bonds both if needed.
+- **Internet strategy:** GL-MT6000 as primary router (wired WAN), M7 Pro as 5G failover on WAN2. **Failover is handled at the router level** — the GL.iNet switches WANs automatically if the primary drops. Speedify on the laptop cannot bond these connections because the laptop sees only one LAN interface from the router. For Speedify bonding to work, the M7 Pro would need to connect directly to the laptop as a second physical interface (e.g., USB tethering). Current architecture: router-managed failover only. Speedify is installed but functionally inactive unless the laptop has two independent uplinks.
 - **Power strategy:** Anker 737 on AERO + powers KLIM and any future power-only devices via USB-A. TalentCell UPS on router stack. Stream survives brief outages without interruption.
 - **Chat monitor:** iPad over WiFi. Zero AERO ports used.
 
 ---
 
-*Updated Mar 3, 2026. Source: OIS expense ledger, Amazon orders, brand bible hardware section.*
+## Stream Source Files
+
+All local files stored on SanDisk Extreme 2TB SSD at `D:\StreamSourceFiles\`.
+
+| File | Location | Purpose |
+|---|---|---|
+| HoldtAnimationPNGs1\ (480 frames) | D:\StreamSourceFiles\ | Source pixel art — 1920×1080, sequential 1.png–480.png |
+| LofiLoop.wav | D:\StreamSourceFiles\ | Carson Thatcher's original lo-fi composition — 1h40m |
+| holdt_6fps.mp4 | D:\StreamSourceFiles\ | Intermediate — 80s silent video from PNGs at 6fps |
+| HoldtLoop.mp4 | D:\StreamSourceFiles\ + /root/ on VPS | Final loop — 1h40m, 1920×1080, H.264+AAC, ~1.28GB |
+| countdown_alagard.html | D:\StreamSourceFiles\ | OBS Browser Source — countdown timer (Alagard font, white, transparent) |
+| patron_roll_typewriter.html | D:\StreamSourceFiles\ | OBS Browser Source — typewriter patron roll, groups of 7 (Alagard font) |
+| SpratFonts\alagard.ttf | D:\StreamSourceFiles\SpratFonts\ | Alagard pixel font — used by both HTML overlays |
+| SpratFonts\Sprat_Variable.ttf + variants | D:\StreamSourceFiles\SpratFonts\ | Sprat font family — available but not currently used in overlays |
+
+---
+
+## Operational Procedures
+
+### Go live from OBS
+
+**Before going live (kill the lo-fi stream):**
+1. Open PowerShell or Command Prompt
+2. `ssh root@138.197.9.139` (enter password)
+3. `tmux attach -t stream`
+4. Press **Q** to stop FFmpeg
+5. Close the terminal window (safe — tmux persists)
+
+**Update countdown timer:**
+6. Open `D:\StreamSourceFiles\countdown_alagard.html` in a text editor
+7. Change the `TARGET` line to your go-live time (format: `'2026-MM-DDTHH:MM:SS-05:00'` for EST, `-04:00` for EDT)
+8. Save the file
+
+**Go live:**
+9. Open OBS — start on **Warmup scene**
+10. Click **Start Streaming**
+11. YouTube will blip for a few seconds — that's the handoff
+12. When countdown hits zero, switch to **Writing Stream** or **Gaming Stream** via Stream Deck
+
+**Important:** Once `time=` is scrolling in the FFmpeg terminal, **close the window immediately**. Do not press arrow keys, Ctrl+Z, or anything else. Random keypresses suspend or crash FFmpeg.
+
+### End stream and bring Holdt back
+
+1. Switch to **Cooldown scene** via Stream Deck
+2. Let it play 1–2 minutes
+3. Click **Stop Streaming** in OBS
+4. Open PowerShell or Command Prompt
+5. `ssh root@138.197.9.139` (enter password)
+6. `tmux attach -t stream` — if session gone: `tmux new -s stream`
+7. Run: `ffmpeg -re -stream_loop -1 -i HoldtLoop.mp4 -c:v copy -c:a copy -f flv rtmp://live.restream.io/live/re_10860387_75ea120b5509c4a2572f`
+8. Wait for `time=` to scroll — close the window. Holdt is back.
+
+### Check if lo-fi stream is running
+1. SSH into server → `tmux attach -t stream`
+2. If `time=` values are scrolling → stream is running
+3. Close the window. Safe.
+
+### Restart lo-fi stream after a drop
+1. SSH into server → `tmux attach -t stream`
+2. Run the FFmpeg command (step 7 above)
+3. Wait for `time=`, close window
+
+### Verify YouTube is receiving
+Restream dashboard showing LIVE + EXCELLENT does **not** mean YouTube is live. Also check:
+- Restream → Channels → E.I. Werner toggle must be **ON** (defaults to OFF after reconnects)
+- YouTube Studio → Go Live → click **"Stream key" dropdown** at top → switch from "Default stream" to Restream-created stream
+- YouTube Studio's Default stream dashboard will always say "No data" / "Connect your encoder" — this is normal. Restream creates its own stream entry via OAuth.
+
+---
+
+## Issues Log — First Broadcast (March 3, 2026)
+
+### Issue 7 — Accidentally reset YouTube stream key, broke Restream connection
+**Date:** March 3, 2026
+**Symptom:** Holdt running on Restream but not appearing on YouTube after resetting the stream key in YouTube Studio.
+**Cause:** YouTube stream key was accidentally reset in YouTube Studio. Restream connects via OAuth and creates its own stream entry — resetting the key on YouTube's side broke that connection.
+**Resolution:** In Restream → Channels → removed YouTube channel entirely → re-added via "+ Add Channel" → YouTube → re-authorized with Google account. Fresh OAuth connection established with new key.
+**Prevention:** Never touch stream settings in YouTube Studio. Restream owns the YouTube connection. YouTube Studio is for monitoring only — use "Change dashboard" to find the Restream-created stream.
+
+### Issue 8 — Restream channel toggle defaults to OFF after reconnect
+**Date:** March 3, 2026
+**Symptom:** VPS pushing to Restream successfully (Restream dashboard shows incoming stream), but YouTube not receiving. Channel shows "Offline" in Restream.
+**Cause:** After removing and re-adding the YouTube channel in Restream, the channel toggle defaulted to OFF. Restream was receiving the feed but not forwarding it.
+**Resolution:** Clicked the toggle next to E.I. Werner in Restream → Channels to turn it ON. Stream immediately went live on YouTube.
+**Prevention:** After ANY channel reconnect in Restream, always verify the channel toggle is ON before assuming the stream is live.
+
+### Issue 9 — FFmpeg suspended by accidental Ctrl+Z
+**Date:** March 3, 2026
+**Symptom:** FFmpeg stopped streaming. Terminal showed `[1]+ Stopped` message with arrow key escape characters.
+**Cause:** Pressing arrow keys and accidentally hitting Ctrl+Z while FFmpeg was running in the terminal. Ctrl+Z sends SIGTSTP which suspends the foreground process.
+**Resolution:** `kill %1` to terminate the suspended process, then re-ran the FFmpeg command.
+**Prevention:** Once `time=` is scrolling after starting FFmpeg, close the terminal window immediately. Do not interact with the terminal. tmux keeps the session alive regardless.
+
+### Issue 10 — YouTube Studio "Default stream" dashboard shows no data (recurring)
+**Date:** March 3, 2026 (repeat of Issue 6 from March 2)
+**Symptom:** YouTube Studio Go Live page shows "No data" and "Connect your encoder to go live" even though stream is live on Restream.
+**Cause:** YouTube Studio defaults to showing the "Default stream" dashboard. Restream creates its own stream entry via OAuth — it does NOT use the Default stream key.
+**Resolution:** Click the dropdown at the top of YouTube Studio that says "Stream key: Default stream" and switch to the Restream-created stream. The stream is live there.
+**Prevention:** Bookmark the correct YouTube Studio dashboard URL once found. Never use the Default stream view for monitoring.
+
+---
+
+## Architecture Decisions — Updated
+
+| Date | Decision | Reasoning |
+|---|---|---|
+| Mar 2, 2026 | VPS over OBS-always-on for 24/7 radio | Stream survives laptop downtime. Critical for Athens move and travel. $6/mo. |
+| Mar 2, 2026 | 6fps animation speed | 24fps too fast, 12fps still too fast. 6fps matches the lo-fi ambient feel. |
+| Mar 2, 2026 | Restream Standard over Free | Standard ($16/mo annual) supports 3 channels. Note: free plan watermark only applies to Restream Studio, NOT to OBS-based streaming — but Standard still justified for 3-channel support, event features, and consolidated management. |
+| Mar 2, 2026 | Deferred seamless handoff (nginx-rtmp) | VPS is already live and working. Brief YouTube blip acceptable for now. Revisit when live streams are regular. |
+| Mar 2, 2026 | Deferred headless OBS on VPS | Target architecture for eliminating handoff gap + dynamic overlays on 24/7 stream. Requires 4+ vCPU / 8GB RAM ($48/mo shared, $84/mo dedicated CPU on DigitalOcean). Revisit after streaming cadence validated (~April 2026). |
+| Mar 3, 2026 | Countdown timer as local OBS Browser Source (Option D) | No VPS changes needed. countdown_alagard.html runs locally in OBS Warmup scene. Countdown only visible when Evan is in Warmup — not on 24/7 radio. Simplest implementation, no cost, no new failure points. |
+| Mar 3, 2026 | Patron roll as local OBS Browser Source | patron_roll_typewriter.html — typewriter animation, groups of 7 names, Alagard font. Hardcoded names for now; will need update mechanism as real patrons join. |
+| Mar 3, 2026 | Alagard font over Sprat for stream overlays | Pixel aesthetic matches Holdt/Marwan's art style. Sprat fonts retained in SpratFonts folder as backup option. |
+| Mar 3, 2026 | YouTube Studio is monitoring-only | Never edit stream settings in YouTube Studio. Restream owns the connection via OAuth. Resetting the YouTube stream key breaks the Restream connection and requires full channel removal/re-add in Restream. |
+| Mar 3, 2026 | Router-level failover, not Speedify bonding | Speedify requires two independent network interfaces on the laptop. With both WANs behind the GL.iNet router, the laptop sees one LAN port — Speedify cannot bond. GL.iNet handles WAN failover at the router level. For Speedify to work, M7 Pro would need direct USB tethering to laptop as second interface. Current decision: rely on router failover only. |
+
+---
+
+## Known Issues & Fix Queue — Updated
+
+| Issue | Priority | Fix | Status |
+|---|---|---|---|
+| No auto-restart when Restream drops VPS connection | **Critical** | systemd service with Restart=always, or shell loop wrapper | Must complete before Athens (~Mar 11) |
+| Keyframe interval ~41s (YouTube health: "Poor") | **High** | Rebuild HoldtLoop.mp4 with `-g 12 -keyint_min 12`, re-upload to VPS | Bundle with auto-restart fix |
+| VPS default root password unchanged | **High** | Change via `passwd` + create non-root sudo user + SSH key auth + disable root login | Before Athens |
+| Countdown timer requires manual time update | Low | Edit TARGET in countdown_alagard.html before each stream | Acceptable for now; automate later |
+| Patron roll is hardcoded | Low | Will need update mechanism as real patrons join | Future — JSON file or API |
+| No seamless VPS ↔ OBS handoff | Low | Headless OBS on VPS (target architecture) | Deferred to ~April 2026 after cadence validated |
+| Speedify not functional in current topology | Low | USB tether M7 Pro directly to laptop, or run Speedify on OpenWrt router | Evaluate in Athens based on connection stability |
+
+---
+
+*Updated Mar 3, 2026 — post-first-broadcast. Source: OIS expense ledger, Amazon orders, brand bible, first broadcast session log.*
