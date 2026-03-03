@@ -1,0 +1,311 @@
+# Outside Inn Studios — Tech Infrastructure Reference
+**Updated: March 3, 2026 | Living Document**
+
+> Staff-safe reference for streaming architecture, hardware, software, and operational procedures. Credentials stored separately — see Evan for access.
+
+---
+
+## Streaming Architecture
+
+### Two Modes
+
+**Mode 1 — Lo-Fi Radio (default, 24/7)**
+A cloud VPS runs a looping video file via FFmpeg and pushes it to Restream, which forwards to YouTube. Runs independently of any local hardware. Evan's laptop can be off, closed, or in another country.
+
+**Mode 2 — Live Stream (when Evan goes live)**
+OBS on Evan's laptop pushes to Restream, which forwards to YouTube. The VPS stream is paused during live sessions. YouTube only accepts one encoder at a time — switching between modes causes a brief reconnection blip (a few seconds).
+
+### Stream Path
+
+```
+Lo-Fi Radio:
+[VPS: FFmpeg loops HoldtLoop.mp4] → [Restream RTMP ingest] → [YouTube @EIWerner]
+
+Live Stream:
+[Laptop: OBS] → [Restream RTMP ingest] → [YouTube @EIWerner]
+```
+
+### The Handoff (VPS ↔ OBS)
+
+Going live from OBS:
+1. SSH into VPS → attach to tmux session → stop FFmpeg → detach
+2. Start OBS stream to Restream
+3. Go live as normal
+
+Returning to Lo-Fi Radio:
+1. Stop OBS stream
+2. SSH into VPS → attach to tmux → restart FFmpeg loop → detach
+
+The blip during handoff is unavoidable under the current architecture. A future upgrade (nginx-rtmp traffic controller on the server) could eliminate it — deferred for now.
+
+### Key Infrastructure
+
+| Component | Role | Notes |
+|---|---|---|
+| DigitalOcean VPS | Runs 24/7 lo-fi loop | Ubuntu 24.04, 1GB RAM, 1 vCPU, NYC3 region |
+| FFmpeg | Loops and streams video on VPS | Stream-copies without re-encoding (minimal CPU) |
+| tmux | Keeps FFmpeg alive when SSH disconnects | Session named "stream" |
+| Restream (Standard) | RTMP relay to YouTube (+ Twitch when added) | Supports 3 channels |
+| OBS Studio | Local streaming software | NVENC encoding via RTX 5070 |
+| HoldtLoop.mp4 | The lo-fi video file | 1h40m, 1920x1080, 6fps, H.264 + AAC, ~1.28GB |
+
+---
+
+## The Lo-Fi Video File — How It Was Built
+
+**Source material:** 480 PNG frames (1920x1080, sequential: 1.png–480.png) from Marwan Hasnaoui + 1h40m lo-fi music loop (LofiLoop.wav) from Carson Thatcher.
+
+**Step 1 — Build 6fps silent video from PNGs:**
+```
+ffmpeg -framerate 6 -i "D:\StreamSourceFiles\HoldtAnimationPNGs1\%d.png" -c:v libx264 -pix_fmt yuv420p "D:\StreamSourceFiles\holdt_6fps.mp4"
+```
+
+**Step 2 — Loop animation to match full music duration (6000 seconds = 1h40m):**
+```
+ffmpeg -stream_loop -1 -i "D:\StreamSourceFiles\holdt_6fps.mp4" -i "D:\StreamSourceFiles\LofiLoop.wav" -map 0:v -map 1:a -c:v libx264 -g 12 -keyint_min 12 -c:a aac -t 6000 "D:\StreamSourceFiles\HoldtLoop.mp4"
+```
+Note: `-g 12 -keyint_min 12` sets a 2-second keyframe interval at 6fps — required by YouTube for "Good" stream health. The initial build omitted this and showed "Poor" health. Rebuild with these flags if the current file is still in use.
+
+**Step 3 — Upload to VPS:**
+```
+scp D:\StreamSourceFiles\HoldtLoop.mp4 root@[SERVER_IP]:/root/
+```
+
+### File Locations
+
+| File | Location |
+|---|---|
+| Source PNGs (480 frames) | D:\StreamSourceFiles\HoldtAnimationPNGs1\ |
+| Lo-Fi Music (original WAV) | D:\StreamSourceFiles\LofiLoop.wav |
+| Intermediate (6fps silent) | D:\StreamSourceFiles\holdt_6fps.mp4 |
+| Final Loop (video + audio) | D:\StreamSourceFiles\HoldtLoop.mp4 |
+| VPS Copy | /root/HoldtLoop.mp4 on VPS |
+
+All local source files stored on SanDisk Extreme 2TB SSD (portable, device-agnostic path).
+
+---
+
+## Hardware Inventory
+
+### Streaming Core
+
+| Item | Role |
+|---|---|
+| GIGABYTE AERO X16 (RTX 5070, 32GB) | Primary machine — OBS encoding via NVENC |
+| ASUS ZenScreen 15.6" Portable Monitor | Chat/dashboard second screen |
+| Elgato Stream Deck + | Scene switching (one-button transitions) |
+| Elgato Key Light Neo | Lighting |
+| Blue Yeti Nano USB Mic | Voice |
+| Sony WH-1000XM5 | Audio monitoring |
+| KLIM Wind Cooling Pad | Laptop thermal management |
+
+### Camera
+
+| Item | Role |
+|---|---|
+| GoPro HERO13 Black | Travel/BTS content |
+| Surf Bundle + Carbon Fiber Pole + Tripod/Ballhead | Mounting |
+| SanDisk 256GB + 64GB microSD | GoPro storage |
+
+### Storage
+
+| Item | Role |
+|---|---|
+| SanDisk Extreme 2TB SSD | Primary — source files, exports |
+| Samsung T9 2TB SSD | Backup |
+
+### Internet Redundancy
+
+| Item | Role |
+|---|---|
+| GL.iNet GL-MT6000 Router | Primary — dual-WAN failover |
+| Netgear Nighthawk M7 Pro 5G | Backup cellular connection |
+| Bingfu MIMO Antenna | Signal boost for hotspot |
+| USB-C Ethernet Adapter | Wired connection to laptop |
+| Speedify | Software bonding/failover across connections |
+
+### Power Backup
+
+| Item | Role |
+|---|---|
+| Anker 737 24,000mAh | Laptop battery backup |
+| TalentCell Mini UPS | Router UPS (keeps internet alive during power loss) |
+| ELECOM NESTOUT 15,000mAh | Emergency backup |
+
+### Charging & Connectivity
+
+| Item |
+|---|
+| Anker 100W 3-Port GaN Charger |
+| Anker 7-in-1 USB-C Hub |
+| Anker Prime 240W USB-C Cable |
+
+### Travel & Protection
+
+| Item |
+|---|
+| Tortuga Pro 40L Backpack |
+| Alpaka Elements Tech Case |
+| Laptop Cable Lock |
+| ABUS Padlocks |
+
+---
+
+## Software Stack
+
+| Software | Purpose |
+|---|---|
+| OBS Studio | Streaming (NVENC encoding) |
+| Restream (Standard plan) | Simulcast relay — YouTube + Twitch (+ 1 more channel) |
+| Speedify | Connection bonding/failover |
+| ExpressVPN | VPN |
+| FFmpeg | Video encoding, VPS streaming |
+| tmux | Persistent server sessions |
+| DaVinci Resolve Pro | Video editing (available, used for initial animation pass) |
+
+---
+
+## OBS Scene Structure
+
+All scenes switchable via one button on Stream Deck:
+
+| Scene | What's On Screen | Music Level |
+|---|---|---|
+| Outside Inn Warmup | Holdt animation + lo-fi music | 100% |
+| Writing Stream | Facecam + Notion | 20–30% |
+| Gaming Stream | Facecam + game | 20–30% or off |
+| Cooldown | Holdt animation + lo-fi music | 100% |
+| Ambient Loop | Offline — YouTube lo-fi radio | 100% |
+
+---
+
+## Platform Presence
+
+| Platform | Handle | Role |
+|---|---|---|
+| YouTube | @EIWerner | Primary — streams, VODs, lo-fi radio, update videos |
+| Twitch | eiwerner | Secondary — simulcast, community, gaming |
+| Instagram | e.i.werner | Repurposed clips |
+| TikTok | e.i.werner | Repurposed clips |
+| Threads | e.i.werner | Repurposed clips |
+| X | eiwerner | Repurposed clips |
+| Blue Sky | e.i.werner | Repurposed clips |
+| Kick | eiwerner | Placeholder |
+| Rumble | eiwerner | Placeholder |
+| Substack | eiwerner | Newsletter (TBD) |
+
+**Domains:** eiwerner.com · outsideinn.tv
+**General contact:** innkeep@outsideinn.tv
+
+---
+
+## Monthly Operating Costs (Streaming Infrastructure)
+
+| Service | Cost |
+|---|---|
+| DigitalOcean VPS (1GB, NYC3) | $6/mo |
+| Restream Standard | ~$16/mo (billed annually) |
+| **Total streaming infra** | **~$22/mo** |
+
+Note: DigitalOcean $200 free credit active — covers VPS through approximately late April 2026.
+
+---
+
+## Current Deployment
+
+**Location:** Launching from White Plains, NY. Moving to Athens, Greece ~March 11, 2026.
+
+**Athens connectivity:** Flatio booking confirmed through May 15, 2026. Advertised speeds: 195 Mbps down / 19 Mbps up. Dual-WAN failover (wired + Nighthawk 5G) provides redundancy.
+
+**Uptime target:** 99.9% — wired primary + 5G cellular failover + Speedify bonding + battery backup on laptop and router.
+
+**Minimum viable stream:** Laptop + webcam + mic + 10 Mbps upload on ethernet = reliable stream. Everything else raises the ceiling. The stream does not break without the extras.
+
+---
+
+## Known Issues & Fix Queue
+
+| Issue | Priority | Fix | Status |
+|---|---|---|---|
+| No auto-restart when Restream drops VPS connection | **High** | Build shell loop wrapper on VPS | Needed before Athens move (~Mar 11) |
+| Keyframe interval ~41s (YouTube health: "Poor") | Medium | Rebuild HoldtLoop.mp4 with `-g 12 -keyint_min 12`, re-upload | Bundle with auto-restart fix |
+| Credentials in plain text in internal docs | Medium | Redact from docs, store in password manager | Acknowledged — in progress |
+| VPS default root password unchanged | Medium | Change via `passwd` on server | Next SSH session |
+| No seamless VPS ↔ OBS handoff | Low | nginx-rtmp traffic controller on server | Deferred — future session |
+
+---
+
+## Operational Procedures
+
+### Check if lo-fi stream is running
+1. Open PowerShell
+2. `ssh root@[SERVER_IP]`
+3. `tmux attach -t stream`
+4. If `time=` values are scrolling → stream is running
+5. Close the PowerShell window. This is safe — the stream keeps running.
+
+### Restart lo-fi stream after a drop
+1. Open PowerShell
+2. `ssh root@[SERVER_IP]`
+3. `tmux attach -t stream`
+4. Run the FFmpeg command (see secure credentials doc for full command with stream key)
+5. Wait until `time=` starts scrolling
+6. Close the PowerShell window. Stream keeps running.
+
+### Go live from OBS
+**Before going live (kill the lo-fi stream):**
+1. Open PowerShell
+2. `ssh root@[SERVER_IP]`
+3. `tmux attach -t stream`
+4. Press `Q` to stop FFmpeg
+5. Close the PowerShell window
+
+**Go live:**
+6. Open OBS on laptop
+7. Hit Start Streaming — you're live
+
+**After you're done (bring Holdt back):**
+8. Stop the stream in OBS
+9. Open PowerShell
+10. `ssh root@[SERVER_IP]`
+11. `tmux attach -t stream`
+12. Run the FFmpeg command (see secure credentials doc)
+13. Wait until `time=` starts scrolling
+14. Close the PowerShell window. Holdt is back.
+
+**Note:** Between step 5 and step 7, and between step 8 and step 13, YouTube has no input. Expect a ~30–60 second blip each way. This is unavoidable under current architecture.
+
+### Update the video file
+1. Stop FFmpeg on VPS (steps 1–5 above)
+2. Open a fresh PowerShell window
+3. `scp [local_path]/HoldtLoop.mp4 root@[SERVER_IP]:/root/`
+4. Restart FFmpeg (steps 9–14 above)
+
+### tmux notes
+- **Default: just close the PowerShell window.** This is always safe. tmux keeps the session and FFmpeg running on the server regardless.
+- **Formal detach (optional):** Press `Ctrl+B`, release completely, then press `D` alone. This is two separate actions, not a held shortcut. If it doesn't work after two tries, close the window instead.
+- **Reattach:** `tmux attach -t stream`
+
+---
+
+## Architecture Decisions Log
+
+| Date | Decision | Reasoning |
+|---|---|---|
+| Mar 2, 2026 | VPS over OBS-always-on for 24/7 radio | Stream survives laptop downtime. Critical for Athens move and travel. $6/mo. |
+| Mar 2, 2026 | 6fps animation speed | 24fps too fast, 12fps still too fast. 6fps matches the lo-fi ambient feel. |
+| Mar 2, 2026 | Restream Standard over Free | Free plan has visible branding watermark. Standard ($16/mo) removes it + supports 3 channels. |
+| Mar 2, 2026 | Deferred seamless handoff (nginx-rtmp) | VPS is already live and working. Brief YouTube blip acceptable for now. Revisit when live streams are regular. |
+| Mar 2, 2026 | Deferred OBS-always-on architecture | Identified as cleaner long-term, but VPS already tested and running. Revisit after Athens setup stabilizes. |
+
+---
+
+## Stream Credits
+
+- **Original pixel art & animation:** Marwan Hasnaoui
+- **Original lo-fi composition:** Carson Thatcher
+- **© Outside Inn Studios, LLC. All rights reserved.**
+
+---
+
+*Last updated March 3, 2026.*
