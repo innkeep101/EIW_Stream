@@ -1,0 +1,378 @@
+# Outside Inn Radio — Complete Launch Record
+**From 480 PNGs to 24/7 Live Stream**
+*Built: March 2, 2026 | Last updated: March 3, 2026*
+
+---
+
+## Purpose of This Document
+
+This is the definitive technical record of how the Outside Inn 24/7 lo-fi radio stream was built, launched, and operated through its first night. It serves two purposes: (1) a reference for explaining the launch to others, and (2) a context document for AI-assisted troubleshooting and future rebuilds. Every file, command, decision, pivot, and problem encountered is recorded here.
+
+---
+
+## How the Whole Thing Works — Master Architecture
+
+### The two modes
+
+**Mode 1 — Lo-Fi Radio (default, 24/7)**
+A cloud server (DigitalOcean VPS) in New York runs a video file on repeat, forever, and pushes it to Restream, which forwards it to YouTube. Evan's laptop can be off, closed, or in another country. The server costs $6/month and runs independently of everything else.
+
+**Mode 2 — Live Stream (when Evan goes live)**
+Evan's laptop runs OBS, which pushes the live stream to Restream, which forwards it to YouTube. During this time, the VPS is paused. YouTube sees one continuous stream source at a time — you can't have both running simultaneously or they'll conflict.
+
+### The handoff
+Switching between modes always causes a brief blip on YouTube (a few seconds of reconnecting). This is unavoidable — YouTube doesn't allow two encoders at once. The goal is to make it fast, not eliminate it entirely.
+
+### The players
+
+| What | What it does | Where |
+|---|---|---|
+| DigitalOcean VPS | Cloud server that runs Holdt 24/7 | digitalocean.com — IP: 138.197.9.139 |
+| FFmpeg | Software on the server that loops the video and pushes it | Runs inside the server |
+| tmux | Keeps FFmpeg running even when the terminal is closed | Session named "stream" on the server |
+| HoldtLoop.mp4 | The video file — 1h40m, Holdt animation + lo-fi music | /root/HoldtLoop.mp4 on the server |
+| Restream | Receives video from VPS or OBS and forwards to YouTube | restream.io — innkeep@outsideinn.tv |
+| OBS | Evan's streaming software on the laptop | GIGABYTE AERO X16 |
+| YouTube | Where viewers watch | Channel: @EIWerner |
+
+### Stream path diagram
+
+Lo-Fi Radio mode:
+```
+[VPS: FFmpeg loops HoldtLoop.mp4]
+        ↓
+[Restream RTMP ingest]
+        ↓
+[YouTube @EIWerner — live 24/7]
+```
+
+Live stream mode:
+```
+[Laptop: OBS]
+        ↓
+[Restream RTMP ingest]
+        ↓
+[YouTube @EIWerner — Evan live]
+```
+
+### Credentials
+
+| Thing | Value |
+|---|---|
+| Server IP | 138.197.9.139 |
+| Server login | root |
+| Restream RTMP URL | rtmp://live.restream.io/live/ |
+| Restream stream key | re_10860387_75ea120b5509c4a2572f |
+| Restream account | innkeep@outsideinn.tv |
+| DigitalOcean account | innkeep@outsideinn.tv |
+
+---
+
+## Phase 1 — Receiving & Evaluating the Animation
+
+1. Received 480 PNG frames from Marwan Hasnaoui (pixel art animation of Holdt at a typewriter by a fire in the rain)
+2. Evaluated file properties:
+   - Format: PNG (Deflated compression)
+   - Resolution: 1920x1080
+   - File size: ~233KB per frame (216KB compressed)
+   - Naming convention: Sequential integers — 1.png through 480.png
+   - Delivery folder: animation/
+   - Confirmed in Figma: 1920x1080 native resolution
+3. Removed a stray pane file from the folder to ensure clean export readiness
+
+---
+
+## Phase 2 — First Pass in DaVinci Resolve (Round 1)
+
+4. Opened DaVinci Resolve Pro for the first time (no prior experience)
+5. Imported the 480 PNGs as an image sequence into the Media Pool — DaVinci treats sequentially numbered PNGs as a single clip
+6. Original clip properties: 19 seconds at 24fps (480 frames / 24fps = ~20s)
+7. Set playback speed to 50% using the duration/speed controls
+8. Exported as MP4 → result: ~40 seconds at 12fps
+9. Used FFmpeg to merge the Resolve-exported MP4 with LofiLoop.wav (Carson Thatcher's original 1h40m lo-fi composition) into a single combined file
+
+---
+
+## Phase 3 — Second Pass with FFmpeg (Round 2)
+
+The pivot: Woke up the next day and the animation still felt too fast at 12fps. Went back into DaVinci Resolve to evaluate different speeds, decided another 50% reduction was correct → target: 6fps.
+
+10. Decided to skip Resolve for this pass and go directly to FFmpeg, pulling from the original PNG folder at 6fps for a cleaner result with no intermediate export
+11. Source files moved to SanDisk Extreme 2TB SSD at D:\StreamSourceFiles\ — portable, device-agnostic (same path works from White Plains or Athens)
+12. Built the 6fps silent video directly from PNGs:
+
+```
+ffmpeg -framerate 6 -i "D:\StreamSourceFiles\HoldtAnimationPNGs1\%d.png" -c:v libx264 -pix_fmt yuv420p "D:\StreamSourceFiles\holdt_6fps.mp4"
+```
+
+13. Looped the animation to match the full 1h40m music duration (6000 seconds):
+
+```
+ffmpeg -stream_loop -1 -i "D:\StreamSourceFiles\holdt_6fps.mp4" -i "D:\StreamSourceFiles\LofiLoop.wav" -map 0:v -map 1:a -c:v libx264 -c:a aac -t 6000 "D:\StreamSourceFiles\HoldtLoop.mp4"
+```
+
+Command breakdown:
+- -framerate 6 — sets input frame rate to 6fps when reading PNGs
+- %d.png — tells FFmpeg to read sequentially numbered files (1.png, 2.png, etc.)
+- -c:v libx264 -pix_fmt yuv420p — H.264 encoding, standard color format for compatibility
+- -stream_loop -1 — loops the video input infinitely until -t duration is reached
+- -map 0:v -map 1:a — takes video from first input, audio from second input
+- -c:a aac — AAC audio encoding (required for MP4 container)
+- -t 6000 — total output duration in seconds (6000s = 1h40m, matching the music loop)
+
+14. Final output: HoldtLoop.mp4
+   - Size: 1.28GB
+   - Duration: 1 hour 40 minutes
+   - Video: H.264, 1920x1080, 6fps, ~1710 Kbps
+   - Audio: AAC, 48000 Hz, stereo, ~129 Kbps
+   - Total bitrate: ~1843 Kbps
+
+15. Loaded into OBS → LoFiRadio scene as a Media Source → Loop enabled. Running at 0.8% CPU. Confirmed: looks and sounds exactly right.
+
+---
+
+## Phase 4 — Architecture Decision: VPS vs. OBS-Always-On
+
+The question considered: Should the lo-fi radio stream from the laptop via OBS running 24/7, or from a VPS running independently?
+
+Two options evaluated:
+
+Option A — OBS always-on: OBS streams continuously to Restream. Going live = switch a scene. Going back to lo-fi = switch back. No server needed. Fully seamless. Requires laptop to stay on and OBS running at all times.
+
+Option B — VPS as primary broadcaster: A cloud server runs FFmpeg indefinitely. Going live requires stopping the VPS stream, starting OBS, then reversing afterward. Causes a brief YouTube blip on each handoff. Laptop can be off. Server costs $6/month.
+
+Decision: VPS as primary broadcaster (Option B). Reasoning: the goal was to have the stream survive laptop downtime. VPS gives full independence — the inn stays open whether or not the laptop is on.
+
+A second architecture discussion happened later the same day: After the handoff workflow was built and tested, Evan was asked about his actual laptop habits. He said the laptop is always on when streaming. The question was re-evaluated with a ranked priority list: Simple (1) > Automated (2) > Seamless (3) > Branded (4). Given those priorities, OBS-always-on was identified as the cleaner long-term architecture — but the VPS was already live, tested, and working. Decision: keep VPS as current setup and revisit this architecture upgrade later.
+
+The seamless handoff question: Evan asked if there was a way to eliminate the YouTube blip entirely during handoffs. The answer: yes — a traffic controller layer (e.g., nginx-rtmp on the server) could sit between both sources and YouTube, switching instantly without a disconnect. Decision: deferred to a future session.
+
+---
+
+## Phase 5 — Cloud Infrastructure Setup (DigitalOcean VPS)
+
+Why a VPS instead of streaming from the laptop: Restream's native scheduler maxes out at 10 loops (~40 hours) and requires manual rescheduling. A VPS running FFmpeg loops infinitely for $6/month with no intervention.
+
+16. Created DigitalOcean account (innkeep@outsideinn.tv), added company card, received $200 free credit (60-day expiry)
+17. Spun up a droplet with these specs:
+   - Image: Ubuntu 24.04 LTS
+   - Size: $6/mo — 1GB RAM, 1 vCPU, 25GB SSD, 1TB transfer
+   - Region: NYC3 (New York)
+   - Auth: Password
+   - IP: 138.197.9.139
+   - Hostname: ubuntu-s-1vcpu-1gb-nyc3-01
+   - Note: 512MB RAM droplet was considered but rejected — too tight for FFmpeg under load
+18. SSH'd into the server from Windows PowerShell: ssh root@138.197.9.139
+19. Installed FFmpeg: apt install ffmpeg -y (194 packages, ~595MB)
+
+---
+
+## Phase 6 — Restream Setup
+
+Architecture: VPS FFmpeg → Restream RTMP ingest → Restream routes to YouTube (and Twitch when added).
+
+20. Logged into Restream account (innkeep@outsideinn.tv)
+21. Located RTMP credentials under Channel/Settings:
+   - RTMP URL: rtmp://live.restream.io/live/
+   - Stream key: re_10860387_75ea120b5509c4a2572f
+22. Upgraded from Free to Standard plan ($16/mo billed annually, ~$192/year) to remove Restream branding watermark. Standard supports 3 channels — sufficient for YouTube + Twitch + one more.
+   - Free plan was rejected: it overlays a Restream branding watermark visible to all viewers
+   - Professional ($39/mo) and Business ($199/mo) plans not needed at this stage
+
+---
+
+## Phase 7 — Uploading the File to VPS
+
+Common mistake to avoid: Running scp from inside the SSH session tries to find the file on the server, not the laptop. Must be run from a local terminal window. This mistake was made once during the build.
+
+23. Opened a fresh PowerShell window (separate from the active SSH session)
+24. Uploaded HoldtLoop.mp4 from laptop SSD to VPS:
+
+```
+scp D:\StreamSourceFiles\HoldtLoop.mp4 root@138.197.9.139:/root/
+```
+
+25. Upload completed: 1.28GB at ~3.3MB/s, ~6 minutes 37 seconds
+26. File now lives at /root/HoldtLoop.mp4 on the VPS
+
+---
+
+## Phase 8 — Starting the 24/7 Stream
+
+Why tmux: If you close the SSH window without tmux, the FFmpeg process dies and the stream stops. tmux keeps the process running in a persistent session on the server.
+
+27. SSH'd back into the VPS: ssh root@138.197.9.139
+28. Installed tmux: apt install tmux -y
+29. Created a persistent named session: tmux new -s stream
+30. Inside the tmux session, launched FFmpeg to stream continuously to Restream:
+
+```
+ffmpeg -re -stream_loop -1 -i HoldtLoop.mp4 -c:v copy -c:a copy -f flv rtmp://live.restream.io/live/re_10860387_75ea120b5509c4a2572f
+```
+
+Command breakdown:
+- -re — reads input at native frame rate (real-time, not as fast as possible)
+- -stream_loop -1 — loops the file infinitely
+- -c:v copy -c:a copy — stream copies without re-encoding (no quality loss, minimal CPU)
+- -f flv — FLV container format required for RTMP streaming
+
+31. Confirmed stream running:
+   - Health: EXCELLENT
+   - Resolution: 1920x1080
+   - Bitrate: ~1820 Kbps
+   - Frame rate: 6fps
+   - time=00:00:27.05, speed=1.02x
+
+To detach from tmux without stopping the stream: Press Ctrl+B, release fully, then D
+To reattach later: tmux attach -t stream
+To stop the stream: Reattach, then press Q
+
+---
+
+## Phase 9 — Connecting to YouTube
+
+How Restream → YouTube works: Restream connects via OAuth (Google account authorization), not stream keys. It creates its own stream on your YouTube channel automatically. YouTube Studio's default "Default stream key" page will show "No data" — this confused troubleshooting for ~30 minutes. You must navigate to the stream Restream created.
+
+32. In Restream dashboard, clicked Add Channel → selected YouTube → authorized via Google OAuth
+33. Toggled YouTube channel ON — Restream confirmed "Sending data..."
+34. In YouTube Studio, yellow error bar appeared: "Stream key is currently assigned. Select a new key or change it in inspired lofi to write with // ad-free [Alpha]" — this is expected. Clicked "Change dashboard" to navigate to the correct stream.
+35. Stream title: "inspired lofi to write with // ad-free [Alpha]"
+36. Category changed from Gaming → People & Blogs
+37. Privacy: Public
+38. Thumbnail: selected a still PNG from Marwan's frames, compressed from ~233KB PNG to under 2MB JPEG using squoosh.app at 80% JPEG quality, uploaded to YouTube
+39. Confirmed live on YouTube → red LIVE badge visible
+
+Note on YouTube stream management: Restream creates new stream entries each session. Over time this creates multiple entries in YouTube Studio. The active one is always the one showing the red LIVE badge. Old entries can be deleted from YouTube Studio → Content → Live.
+
+---
+
+## Phase 10 — First Night of Operation (Post-Launch Discoveries)
+
+### Discovery 1 — YouTube stream health shows "Poor" (keyframe interval)
+
+What happened: YouTube Studio showed a yellow warning: "Please use a keyframe frequency of four seconds or less." Stream health: Poor.
+
+Why: HoldtLoop.mp4 was built without specifying a keyframe interval, so FFmpeg defaulted to ~41.67 seconds between keyframes. YouTube wants 4 seconds or less.
+
+Effect on viewers: Potential buffering on join, especially at seek points. Visible as jitter.
+
+Fix (not yet applied): Rebuild HoldtLoop.mp4 with -g 12 -keyint_min 12 (at 6fps, keyframe every 12 frames = every 2 seconds):
+```
+ffmpeg -stream_loop -1 -i "D:\StreamSourceFiles\holdt_6fps.mp4" -i "D:\StreamSourceFiles\LofiLoop.wav" -map 0:v -map 1:a -c:v libx264 -g 12 -keyint_min 12 -c:a aac -t 6000 "D:\StreamSourceFiles\HoldtLoop.mp4"
+```
+Then re-upload to VPS via scp and restart the stream.
+
+---
+
+### Discovery 2 — Stream dropped after 2 hours 9 minutes ("Broken pipe")
+
+What happened: FFmpeg exited with errors: "Error submitting a packet to the muxer: Broken pipe", "Conversion failed!". Stream went offline. The VPS and FFmpeg were healthy — Restream dropped the connection from its end.
+
+Time of dropout: time=02:09:18.18 — right around the end of one full HoldtLoop.mp4 playthrough.
+
+Likely cause: Restream dropped the connection — possibly a session timeout or a response to zero viewer activity.
+
+Resolution: Manually SSH in, attach to tmux, restart FFmpeg command.
+
+Permanent fix needed: Auto-restart script — a shell loop that restarts FFmpeg automatically when it exits. NOT YET BUILT. Top priority for next session.
+
+---
+
+### Discovery 3 — First live stream test successful
+
+Went live from OBS for a brief test. Stream appeared on YouTube and Restream. Elgato Facecam MK.2 initially showed black — lens cap was still on. Removed cap, camera worked. Stream ran successfully for ~2 minutes before manually ending.
+
+---
+
+### Discovery 4 — Ctrl+B+D detach requires sequential keypresses
+
+Multiple failed attempts to detach from tmux because Ctrl+B and D were pressed simultaneously or with extra keypresses, causing FFmpeg to receive signals and exit with "Received > 3 system signals, hard exiting."
+
+Fix: Press Ctrl+B fully, release completely, then press D. Not held together. If it keeps failing, closing the PowerShell window while inside tmux is safe — the tmux session and FFmpeg continue running on the server regardless.
+
+---
+
+## Final Result
+
+The Outside Inn is live 24/7 on YouTube.
+
+Holdt sits at his typewriter. The fire burns. The rain falls. Carson's music plays.
+The VPS runs in New York for $6/month. Restream routes it to YouTube.
+Closing the browser, closing PowerShell, closing the laptop — none of it stops the inn.
+
+The stream is not yet perfect (keyframe interval is wrong, auto-restart not yet built). But it is live, it is real, and it ran for over 2 hours on its first night before hitting its first issue.
+
+---
+
+## Stream Description (as published)
+
+Original pixel art & animation by Marwan Hasnaoui
+Original composition by Carson Thatcher
+
+© Outside Inn Studios, LLC. All rights reserved.
+
+---
+
+## Key File Locations
+
+| File | Location |
+|---|---|
+| Source PNGs (480 frames) | D:\StreamSourceFiles\HoldtAnimationPNGs1\ |
+| Lo-Fi Music (original) | D:\StreamSourceFiles\LofiLoop.wav |
+| Intermediate (6fps silent MP4) | D:\StreamSourceFiles\holdt_6fps.mp4 |
+| Final Loop (video + audio) | D:\StreamSourceFiles\HoldtLoop.mp4 |
+| VPS Copy | /root/HoldtLoop.mp4 on 138.197.9.139 |
+
+---
+
+## Monthly Costs Added
+
+| Service | Cost |
+|---|---|
+| DigitalOcean VPS (1GB NYC3) | $6/mo |
+| Restream Standard | ~$16/mo (billed annually) |
+| Total | ~$22/mo |
+
+---
+
+## Known Issues & Fix Queue
+
+| Issue | Priority | Fix |
+|---|---|---|
+| Keyframe interval ~41s (YouTube health: Poor) | Medium | Rebuild HoldtLoop.mp4 with -g 12 -keyint_min 12, re-upload to VPS |
+| No auto-restart when Restream drops connection | High | Build shell loop script on VPS — next session |
+| VPS root password not changed from default | Medium | Change via passwd on server |
+| No seamless handoff between VPS and OBS | Low | Deferred — nginx-rtmp traffic controller, future session |
+
+---
+
+## Ongoing Operations
+
+To check if stream is running:
+SSH into VPS → tmux attach -t stream → FFmpeg output should be scrolling with incrementing time=
+
+If stream has stopped (e.g. Restream dropped connection):
+```
+ssh root@138.197.9.139
+tmux attach -t stream
+ffmpeg -re -stream_loop -1 -i HoldtLoop.mp4 -c:v copy -c:a copy -f flv rtmp://live.restream.io/live/re_10860387_75ea120b5509c4a2572f
+```
+When time= is scrolling, press Ctrl+B then D to detach. Close the window.
+
+When going live from OBS:
+1. SSH into VPS → tmux attach -t stream → press Q to stop FFmpeg → Ctrl+B then D to detach
+2. Start OBS stream to Restream as normal
+3. When done, stop OBS, SSH back in, restart FFmpeg command above
+
+If Restream stream key ever changes:
+Update the RTMP URL at the end of the FFmpeg command with the new key from Restream dashboard → Settings → RTMP.
+
+To update the video file on VPS (e.g. new animation from Marwan):
+1. Build new HoldtLoop.mp4 locally using same FFmpeg process
+2. Stop FFmpeg on VPS
+3. scp D:\StreamSourceFiles\HoldtLoop.mp4 root@138.197.9.139:/root/
+4. Restart FFmpeg
+
+---
+
+Updated March 3, 2026. Built in a single session with Claude. Stream went live March 2, 2026.
