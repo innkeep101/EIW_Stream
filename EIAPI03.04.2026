@@ -1,0 +1,1306 @@
+# OIS API Intelligence Database
+**Outside Inn Studios | E.I. Werner Brand**
+*Living document — March 2026*
+
+> **Purpose:** Primary and secondary source intelligence on every platform API relevant to OIS operations. One document per platform. Built for someone with Notion fluency and AI-assisted coding capability. Every integration decision traces back to a source in here.
+
+> **Build Order (Bottom of Doc):** Start with Fourthwall → Discord webhook. Everything else follows.
+
+> **Verification log:**
+> - v1.0 — March 4, 2026: Initial build from official docs (8 platforms)
+> - v1.1 — March 4, 2026: Enriched from verified external research. Added: Notion `Notion-Version: 2025-09-03` mandatory header; Notion Markdown API (official); Notion multi-source DB `data_source_id`; Notion file upload limits; YouTube `liveChatMessages.streamList` server-streaming method; Fourthwall Open API beta + Platform OAuth invite-only caveat + Merchant Center RSS feed; Discord Feb 23 2026 permission split breaking change; OBS v5 protocol break from v4; Streamlabs 60-min token expiry + v2 alerts endpoint.
+
+---
+
+## Table of Contents
+
+1. [YouTube](#1-youtube)
+2. [Discord](#2-discord)
+3. [Fourthwall](#3-fourthwall)
+4. [Patreon (Comparison)](#4-patreon-comparison-reference)
+5. [OBS WebSocket](#5-obs-websocket)
+6. [Streamlabs](#6-streamlabs)
+7. [Notion](#7-notion)
+8. [Anthropic / Claude](#8-anthropic--claude)
+9. [Cross-Platform Integration Chains](#9-cross-platform-integration-chains)
+10. [Build Order & Philosophy](#10-build-order--philosophy)
+
+---
+
+## 1. YouTube
+
+### Primary Sources
+- **Data API v3 Docs:** https://developers.google.com/youtube/v3
+- **Live Streaming API:** https://developers.google.com/youtube/v3/live/docs
+- **Analytics API:** https://developers.youtube.com/analytics
+- **API Console / Quota:** https://console.cloud.google.com
+- **OAuth 2.0 Guide:** https://developers.google.com/identity/protocols/oauth2
+
+### What It Is
+Three separate APIs that together cover the full YouTube lifecycle. They don't automatically talk to each other — you wire them.
+
+---
+
+### YouTube Data API v3
+
+**What it does:** Read and write access to YouTube content — videos, playlists, channels, comments, search.
+
+**Auth:**
+- Public read-only data → API key (simple)
+- User data or writes → OAuth 2.0 (requires consent flow)
+
+**Quota:**
+- Default: **10,000 units/day**
+- Each API call costs units (e.g., search = 100 units, video insert = 1,600 units)
+- Quota increase available via Google Cloud Console request
+- Quota resets at midnight Pacific
+
+**Key Endpoints:**
+
+| Endpoint | Method | Units | What It Does |
+|---|---|---|---|
+| `videos.list` | GET | 1–3 | Fetch video metadata, stats, status |
+| `videos.insert` | POST | 1,600 | Upload a video |
+| `videos.update` | PUT | 50 | Edit title, description, tags, privacy |
+| `playlists.list` | GET | 1 | List playlists |
+| `playlistItems.insert` | POST | 50 | Add video to playlist |
+| `commentThreads.list` | GET | 1 | Read top-level comments |
+| `commentThreads.insert` | POST | 50 | Post a comment as authenticated user |
+| `search.list` | GET | 100 | Search YouTube — expensive, use sparingly |
+| `channels.list` | GET | 1 | Channel metadata, stats |
+| `subscriptions.list` | GET | 1 | Check if user is subscribed |
+
+**OIS Use Cases:**
+- After stream ends: auto-update video description with session notes from Notion
+- Auto-add VODs to "Streams" or "ONCE Writing Sessions" playlists
+- Pull subscriber count for weekly Notion dashboard
+- Check if new members are YouTube subscribers (subscriber verification flow)
+
+---
+
+### YouTube Live Streaming API
+
+**What it does:** Create and control live broadcasts programmatically. Read live chat messages. Monitor SuperChat events.
+
+**Auth:** OAuth 2.0 required for all live operations.
+
+**Key Concepts:**
+- **LiveBroadcast** — the broadcast event (has scheduled start, status, etc.)
+- **LiveStream** — the RTMP stream object (the actual video ingestion point)
+- **LiveChatMessage** — chat messages during broadcast
+- **LiveChatModerator** — moderator management
+
+**Key Endpoints:**
+
+| Endpoint | What It Does |
+|---|---|
+| `liveBroadcasts.list` | Get broadcast status (active, complete, etc.) |
+| `liveBroadcasts.transition` | Start / stop / test broadcast |
+| `liveBroadcasts.update` | Edit broadcast settings (title, description, privacy, **made for kids**) |
+| `liveChatMessages.list` | Poll live chat (polling required — no push) |
+| `liveChatMessages.streamList` | **Server-streaming low-latency chat** (official gRPC-based method — lower latency than polling) |
+| `liveChatMessages.insert` | Post a chat message as the channel |
+| `liveChatModerators.insert` | Add a chat moderator |
+| `liveChatBans.insert` | Ban a user from chat |
+| `superChatEvents.list` | Read SuperChat/SuperSticker events |
+
+**Important — Made For Kids:**
+The `madeForKids` field lives on `liveBroadcasts` resource. It resets between broadcasts. The pre-stream checklist must verify `madeForKids: false` via API — or check manually. This is the root cause of the March 4 stream incident.
+
+**Live Chat — Two Methods:**
+- `liveChatMessages.list` — polling. Response includes `pollingIntervalMillis` telling you how fast to re-poll. Typical: 3–5 seconds during active streams.
+- `liveChatMessages.streamList` — official server-streaming (gRPC) method. Lower latency than polling; the server pushes messages as they arrive rather than requiring repeated requests. **Prefer this for reactive automation** (e.g. Keeper name appears in chat → trigger OBS scene). Source: https://developers.google.com/youtube/v3/live/docs/liveChatMessages/streamList
+
+**OIS Use Cases:**
+- Pre-stream checklist bot: verify `madeForKids: false`, `status.privacyStatus`, chat enabled
+- Live chat monitor: highlight first-time chatters, trigger Discord alert when stream goes live
+- Log SuperChat events to Notion CRM in real time
+- Auto-post "Stream is live" message in chat with Notion writing goal for the session
+
+---
+
+### YouTube Analytics API
+
+**What it does:** Access channel and video performance data — views, watch time, subscribers gained, traffic sources, audience demographics.
+
+**Auth:** OAuth 2.0 required.
+
+**Data Latency:** ~2 days. Not real-time.
+
+**Key Dimensions/Metrics:**
+
+| Metric | What It Means |
+|---|---|
+| `views` | Total views in period |
+| `watchTimeMinutes` | Total watch time |
+| `averageViewDuration` | Average seconds watched |
+| `averageViewPercentage` | % of video watched on average |
+| `subscribersGained` | New subscribers from this content |
+| `estimatedRevenue` | Revenue (requires monetization) |
+| `annotationClickThroughRate` | End screen click-through |
+
+**Traffic Sources:**
+`trafficSourceType` dimension shows where viewers came from: YouTube search, suggested, direct, notifications, external, etc.
+
+**OIS Use Cases:**
+- Weekly analytics pull → Notion database (views, watch time, new subscribers per video)
+- Compare stream VODs vs. short-form clips performance
+- Track which ONCE myth content performs best
+- Monthly update video data (April 7 first one — pull March data automatically)
+
+---
+
+## 2. Discord
+
+### Primary Sources
+- **Developer Portal:** https://discord.com/developers/docs
+- **REST API Reference:** https://discord.com/developers/docs/reference
+- **Gateway (WebSocket) Events:** https://discord.com/developers/docs/topics/gateway
+- **Webhooks:** https://discord.com/developers/docs/resources/webhook
+- **Permissions Reference:** https://discord.com/developers/docs/topics/permissions
+- **Bot Setup Guide:** https://discord.com/developers/docs/getting-started
+
+### What It Is
+Two different integration paths with very different complexity levels. Start with webhooks — they require zero infrastructure.
+
+---
+
+### Discord Webhooks (Send-Only, No Bot Required)
+
+**What it is:** A URL you create in Discord that accepts POST requests. No bot, no server, no authentication token management. Just a URL.
+
+**Create one:** Discord Server Settings → Integrations → Webhooks → New Webhook → Copy URL
+
+**What you can send:**
+- Plain text messages
+- Rich embeds (title, description, color, thumbnail, fields, footer)
+- Custom username and avatar per message
+- File uploads (images, etc.)
+- Buttons and components (limited — needs bot for interactivity)
+
+**Payload Example:**
+```json
+{
+  "username": "The Outside Inn",
+  "avatar_url": "https://your-avatar-url.png",
+  "embeds": [{
+    "title": "🔴 E.I. Werner is LIVE",
+    "description": "Writing ONCE mythology live now.",
+    "color": 16711680,
+    "url": "https://youtube.com/eiwerner",
+    "fields": [
+      { "name": "Session Goal", "value": "CHOSEN outline — scene 3", "inline": true },
+      { "name": "Platform", "value": "YouTube + Twitch", "inline": true }
+    ],
+    "footer": { "text": "While you're here, you're already there." }
+  }]
+}
+```
+
+**Rate Limit:** 30 requests per minute per webhook URL.
+
+**OIS Use Cases (webhook-only, no infrastructure needed):**
+- Stream live alert → `#announcements` channel
+- New Keeper joined (from Fourthwall webhook → Pipedream → Discord webhook)
+- New Scrivener joined
+- ONCE writing milestone hit
+- Monthly update video posted
+
+---
+
+### Discord Bot API (Full Read/Write/Manage)
+
+**What it is:** A proper bot application with persistent connection via Gateway WebSocket. Reads events, manages roles, responds to commands, DMs users.
+
+**Auth:** Bot token (generated in Developer Portal). Store securely — never expose.
+
+**Bot Permissions Needed for OIS:**
+- `Manage Roles` — assign Scrivener/Keeper roles on membership
+- `Send Messages` — welcome messages, announcements
+- `Read Message History` — for moderation or monitoring
+- `Manage Messages` — moderation
+- `Embed Links` — rich message formatting
+
+**Gateway Events (real-time):**
+| Event | Trigger |
+|---|---|
+| `GUILD_MEMBER_ADD` | Someone joins The Outside Inn Discord |
+| `MESSAGE_CREATE` | New message posted (for keyword monitoring) |
+| `GUILD_MEMBER_UPDATE` | Role or nickname changed |
+| `INTERACTION_CREATE` | Slash command used |
+
+**Key REST Endpoints:**
+| Endpoint | What It Does |
+|---|---|
+| `POST /channels/{id}/messages` | Send a message |
+| `PUT /guilds/{id}/members/{userId}/roles/{roleId}` | Assign a role |
+| `DELETE /guilds/{id}/members/{userId}/roles/{roleId}` | Remove a role |
+| `POST /guilds/{id}/members/{userId}/roles` | Batch role update |
+| `GET /guilds/{id}/members` | List server members |
+| `POST /users/@me/channels` | Open a DM channel |
+| `GET /guilds/{id}/roles` | List all roles |
+
+**Rate Limits:** Per-route, typically 5 requests/5 seconds per route. Global limit: 50 requests/second.
+
+**⚠️ Breaking Change — Feb 23, 2026 (verified):**
+Discord made several permissions into their own distinct permission bits — they are no longer bundled under broader permissions. Bots that don't explicitly request the new granular permissions will silently lose access to those actions. Affected permissions include:
+- `PIN_MESSAGES`
+- `CREATE_EVENTS`
+- `CREATE_GUILD_EXPRESSIONS`
+- (others — check Discord changelog for full list)
+
+**Action required:** If building a bot, update your bot's invite URL to request these permissions explicitly. Check your permission integer. Source: https://docs.discord.com/developers/change-log
+
+**OIS Use Cases:**
+- Fourthwall webhook → bot assigns "Scrivener" or "Keeper" Discord role automatically
+- Welcome DM to new members with tier-specific info
+- Slash command: `/whereami` — returns current ONCE myth progress, next stream date
+- Auto-remove role when membership lapses (Fourthwall cancellation webhook → bot removes role)
+
+**Recommended Library:** `discord.py` (Python) or `discord.js` (Node.js). Both well-documented.
+
+---
+
+## 3. Fourthwall
+
+### Primary Sources
+- **Docs Hub:** https://docs.fourthwall.com
+- **Platform API:** https://docs.fourthwall.com/reference/platform-api
+- **Storefront API:** https://docs.fourthwall.com/reference/storefront-api
+- **Webhooks:** https://docs.fourthwall.com/reference/webhooks
+- **Membership / Subscription Docs:** https://help.fourthwall.com (search "memberships")
+- **Discord Integration (native):** https://help.fourthwall.com (search "Discord")
+
+### What It Is
+OIS's primary commerce and membership platform. The most important API to wire up. Handles store, memberships, donations, and has a native Discord role sync that may eliminate the need for a custom bot for role assignment.
+
+**⚠️ Important API Status (verified March 2026):**
+- The **Open API is explicitly in beta** — treat it as potentially unstable surface area
+- **Platform OAuth is invite-only** — you can't self-serve OAuth app registration; the standard path for single-creator automation is API key (Basic Auth), not OAuth
+- This means OIS automation = API key auth, not a full OAuth app. Fine for personal use; matters if you ever want to build something others can connect to
+- Source: https://docs.fourthwall.com/open-api-beta/
+
+**Merchant Center RSS Feed (public, no auth):**
+Fourthwall exposes a public RSS/Atom product feed at a predictable URL for your shop. Useful for read-only product syncing (e.g. pulling product list into Notion) without touching the authenticated API. Source: https://docs.fourthwall.com/open-api-beta/
+
+---
+
+### Fourthwall Platform API
+
+**Auth:** HTTP Basic Auth — use your Fourthwall API credentials (username + password via Base64 encoding). Generate in dashboard under Settings → Integrations.
+
+**Base URL:** `https://openapi.fourthwall.com`
+
+**Rate Limits:** Not publicly specified. Standard REST — don't hammer it.
+
+**Key Resources:**
+
+**Orders:**
+```
+GET  /v1/orders          — List all orders (paginated)
+GET  /v1/orders/{id}     — Get specific order
+```
+Order object includes: customer name, email, items purchased, price paid, shipping address, status.
+
+**Products:**
+```
+GET  /v1/products        — List all products
+GET  /v1/products/{id}   — Get product details (variants, pricing, inventory)
+POST /v1/products        — Create product
+PUT  /v1/products/{id}   — Update product
+```
+
+**Supporters (Customers/Members):**
+```
+GET  /v1/supporters      — List supporters
+GET  /v1/supporters/{id} — Get supporter detail (email, membership tier, order history)
+```
+
+**Memberships:**
+```
+GET  /v1/memberships     — List membership tiers
+GET  /v1/subscriptions   — List all active subscriptions
+```
+
+**Mailing Lists:**
+```
+GET  /v1/mailing-lists          — List available mailing lists
+POST /v1/mailing-lists/{id}/subscribe — Add email to list
+```
+
+**OIS Use Cases:**
+- Pull active Scrivener + Keeper subscriber list → sync to Notion CRM
+- Pull new orders → log to Notion for fulfillment tracking
+- Check subscriber count for weekly dashboard
+- Verify membership status before granting Discord role (if not using native integration)
+
+---
+
+### Fourthwall Storefront API
+
+**Auth:** Public — uses your shop slug, no credentials.
+
+**What it does:** Read-only public-facing product data. Useful for building custom storefronts or embedding product info elsewhere.
+
+**OIS Use Cases:** Minimal. The Platform API is more useful for automation. Storefront API matters if you ever build a custom product page on eiwerner.com.
+
+---
+
+### Fourthwall Webhooks
+
+**This is the most important Fourthwall integration surface.** Webhooks fire events to your endpoint (or a Pipedream/Zapier URL) when things happen in your store.
+
+**Setup:** Dashboard → Settings → Webhooks → Add endpoint URL + select events.
+
+**Security:** Each webhook includes an HMAC-SHA256 signature in the `X-Fourthwall-Signature` header. Verify it to confirm the request is genuine.
+
+**Events:**
+
+| Event | Trigger |
+|---|---|
+| `ORDER_PLACED` | Any purchase in the store |
+| `ORDER_SHIPPED` | Order marked as shipped |
+| `ORDER_REFUNDED` | Refund issued |
+| `SUBSCRIPTION_CREATED` | New Scrivener or Keeper joins |
+| `SUBSCRIPTION_UPDATED` | Membership tier change |
+| `SUBSCRIPTION_DELETED` | Membership cancelled or lapsed |
+| `DONATION_RECEIVED` | One-time donation |
+
+**SUBSCRIPTION_CREATED Payload (partial):**
+```json
+{
+  "event": "SUBSCRIPTION_CREATED",
+  "data": {
+    "id": "sub_abc123",
+    "supporter": {
+      "name": "Jake Hirsch",
+      "email": "jake@example.com"
+    },
+    "tier": {
+      "name": "Keeper",
+      "price": 21.21
+    },
+    "created_at": "2026-03-11T10:00:00Z"
+  }
+}
+```
+
+**Native Discord Integration:**
+Fourthwall has a native Discord role sync — supporters connect their Discord account and roles are assigned automatically based on membership tier. **Try this first before building a custom bot.** If it covers the use case, skip the custom integration. Check current status at https://help.fourthwall.com.
+
+**No-Code Bridge Options:**
+- **Pipedream** — webhook receiver, runs Node.js/Python, free tier sufficient for OIS scale
+- **Zapier** — simpler but paid for multi-step zaps
+- **n8n** — self-hosted option, more control
+
+**OIS Core Webhook Flow:**
+```
+Fourthwall SUBSCRIPTION_CREATED
+  → Pipedream (receiver)
+    → Discord webhook: post to #the-keepers or #scriveners (welcome embed)
+    → Notion: create new row in Members database
+    → (if Discord bot exists) assign role
+```
+
+---
+
+## 4. Patreon (Comparison Reference)
+
+### Primary Sources
+- **Developer Portal:** https://www.patreon.com/portal
+- **API v2 Docs:** https://docs.patreon.com
+- **Webhooks:** https://docs.patreon.com/#webhooks
+
+### Why This Section Exists
+For architectural comparison — understanding what Patreon does differently helps clarify why Fourthwall is the right call for OIS, and which Patreon patterns are worth borrowing.
+
+---
+
+### What Patreon Does Well
+- Mature membership infrastructure with strong creator trust
+- Robust API v2 with member/patron/post/benefit resources
+- Native Discord role integration (well-established)
+- Large existing audience familiar with Patreon membership model
+
+### What Fourthwall Does That Patreon Doesn't
+- Integrated merch store (products + memberships in one platform)
+- No Patreon revenue share (Patreon takes 5–12%; Fourthwall takes 0% on memberships with some transaction fees)
+- Custom shop experience at your own domain
+- Physical product fulfillment built in
+
+### Patreon API v2 Key Differences vs. Fourthwall
+
+| Feature | Patreon | Fourthwall |
+|---|---|---|
+| Auth | OAuth 2.0 | Basic Auth |
+| Member resource | `members` with pledge history | `supporters` with subscription data |
+| Post/content API | Yes — can gate posts programmatically | No equivalent |
+| Merch integration | None | Native |
+| Revenue share | 5–12% | 0% membership, ~3% transaction fee |
+| Webhook events | `members:pledge:create/update/delete` | `SUBSCRIPTION_CREATED/UPDATED/DELETED` |
+
+### When Patreon Would Make Sense
+If OIS ever pivoted to content-gating (written posts, PDFs, mythology chapter releases) as the primary membership value, Patreon's post API has more infrastructure for that. For the current OIS model — community + merch + stream access — Fourthwall wins.
+
+### Patreon Webhook Pattern (for reference)
+```json
+{
+  "data": {
+    "type": "member",
+    "id": "patron_id",
+    "attributes": {
+      "full_name": "Jane Doe",
+      "email": "jane@example.com",
+      "currently_entitled_amount_cents": 2121,
+      "patron_status": "active_patron"
+    }
+  }
+}
+```
+Patreon webhooks also use HMAC-SHA256 signature verification — same pattern as Fourthwall.
+
+---
+
+## 5. OBS WebSocket
+
+### Primary Sources
+- **obs-websocket GitHub (v5):** https://github.com/obsproject/obs-websocket
+- **Protocol Spec:** https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
+- **obs-websocket-js (Node.js):** https://github.com/obs-websocket-community-projects/obs-websocket-js
+- **obs-websocket Python:** https://github.com/aatikturk/obspython
+
+### What It Is
+OBS Studio 28+ has WebSocket built in (port 4455, password protected). It exposes full programmatic control of OBS — scenes, sources, filters, streaming, recording — plus real-time event stream. This is how you make OBS do things without touching the UI.
+
+**v5 is a protocol break from v4** — client libraries written for obs-websocket v4 will not work with v5. Make sure any library you use explicitly supports v5. The `obs-websocket-js` and community Python libraries have v5-specific versions. Source: https://github.com/obsproject/obs-websocket/releases
+
+**Enable it:** OBS → Tools → WebSocket Server Settings → Enable + set password.
+
+---
+
+### Authentication
+WebSocket handshake with SHA256-salted password challenge. All client libraries handle this automatically. You just provide host, port, and password.
+
+```javascript
+// obs-websocket-js example
+const OBSWebSocket = require('obs-websocket-js').default;
+const obs = new OBSWebSocket();
+await obs.connect('ws://localhost:4455', 'your-password');
+```
+
+---
+
+### Key Request Types (what you can ask OBS to do)
+
+**Scene Control:**
+| Request | What It Does |
+|---|---|
+| `GetSceneList` | List all scenes |
+| `GetCurrentProgramScene` | Get active scene name |
+| `SetCurrentProgramScene` | Switch to a scene by name |
+| `CreateScene` | Create a new scene |
+
+**Source Control:**
+| Request | What It Does |
+|---|---|
+| `GetInputList` | List all sources/inputs |
+| `SetInputMute` | Mute/unmute an audio source |
+| `SetInputVolume` | Set volume level |
+| `GetSourceFilterList` | List filters on a source |
+| `SetSourceFilterEnabled` | Toggle a filter on/off |
+
+**Text Sources (GDI+ or FreeType):**
+```javascript
+await obs.call('SetInputSettings', {
+  inputName: 'Patron Roll Text',
+  inputSettings: { text: 'Welcome, Jake Hirsch — Keeper #3' }
+});
+```
+This is how you update the patron roll text programmatically without touching OBS.
+
+**Browser Sources:**
+```javascript
+// Reload a browser source (useful after updating HTML overlay content)
+await obs.call('PressInputPropertiesButton', {
+  inputName: 'Countdown Timer',
+  propertyName: 'refreshnocache'
+});
+```
+
+**Streaming Control:**
+| Request | What It Does |
+|---|---|
+| `GetStreamStatus` | Is stream live? Bytes sent? Duration? |
+| `StartStream` | Start streaming |
+| `StopStream` | Stop streaming |
+| `GetRecordStatus` | Recording active? |
+| `StartRecord` / `StopRecord` | Control recording |
+
+**Persistent Storage (OBS 30+):**
+```javascript
+// Store data that survives OBS restart
+await obs.call('SetPersistentData', {
+  realm: 'OBS_WEBSOCKET_DATA_REALM_PROFILE',
+  slotName: 'streamCount',
+  slotValue: 3
+});
+const data = await obs.call('GetPersistentData', { ... });
+```
+
+---
+
+### Key Events (what OBS tells you automatically)
+
+| Event | When It Fires |
+|---|---|
+| `CurrentProgramSceneChanged` | Scene switched |
+| `StreamStateChanged` | Stream started/stopped |
+| `RecordStateChanged` | Recording started/stopped |
+| `InputMuteStateChanged` | Source muted/unmuted |
+| `SceneItemEnableStateChanged` | Source visibility toggled |
+| `ExitStarted` | OBS is closing |
+
+```javascript
+obs.on('StreamStateChanged', (data) => {
+  if (data.outputActive) {
+    // Stream just went live — trigger Discord alert
+    postDiscordWebhook({ message: '🔴 Stream is live!' });
+  }
+});
+```
+
+---
+
+### OIS Use Cases
+
+**Pre-Stream Checklist Automation:**
+```
+Script runs before stream:
+1. Check YouTube API: madeForKids == false?
+2. Check YouTube API: chat enabled?
+3. Check OBS: correct scene active?
+4. Check OBS: patron roll text up to date?
+5. Check OBS: audio levels within range?
+Report: ALL CLEAR or list failures
+```
+
+**Keeper Celebration Scene:**
+```
+Fourthwall webhook → new Keeper joined
+→ OBS: switch to Keeper celebration scene (duck family animation)
+→ OBS: update text source with "[Name] has joined the Keepers"
+→ OBS: wait 10 seconds
+→ OBS: return to previous scene
+```
+
+**Dynamic Patron Roll:**
+When a new Scrivener or Keeper pays, update the OBS patron roll text source automatically — no manual editing.
+
+**Session Logging:**
+On `StreamStateChanged` (stream ends), log duration, scene switches, and session data to Notion.
+
+---
+
+## 6. Streamlabs
+
+### Primary Sources
+- **Developer Docs:** https://dev.streamlabs.com
+- **REST API:** https://dev.streamlabs.com/reference
+- **Socket API (real-time events):** https://dev.streamlabs.com/docs/socket-api
+- **OAuth 2.0:** https://dev.streamlabs.com/docs/oauth
+
+### What It Is
+Two separate APIs: REST (management) and Socket.IO (real-time events). The Socket API is the valuable one for OIS — it fires events the moment someone follows, subscribes, donates, or cheers.
+
+**Note:** Streamlabs ≠ Streamlabs OBS. The API works regardless of which streaming software you use (OBS with Streamlabs plugin, or Streamlabs Desktop).
+
+---
+
+### Authentication
+OAuth 2.0. Register app at dev.streamlabs.com. User grants access, you get access token.
+
+**⚠️ Token expiry:** Access tokens expire after ~60 minutes. Refresh tokens do not expire. Build your integration to handle token refresh — don't assume an access token stays valid across sessions or stream restarts. Source: https://streamlabs.readme.io/reference/oauth-2
+
+**Scopes:**
+| Scope | What It Allows |
+|---|---|
+| `alerts.create` | Trigger custom alerts |
+| `donations.read` | Read donation history |
+| `donations.create` | Create a donation (testing) |
+| `socket.token` | Access real-time Socket API |
+| `points.read` | Read loyalty points |
+| `credits.write` | Add to stream credits |
+
+---
+
+### REST API Key Endpoints
+
+| Endpoint | Method | What It Does |
+|---|---|---|
+| `GET /donations` | GET | List donation history |
+| `POST /api/v2.0/alerts` | POST | Trigger a custom alert overlay (v2 endpoint — use this, not `/alerts`) |
+| `GET /points` | GET | Get user loyalty points |
+| `POST /credits/roll` | POST | Trigger credits roll |
+| `GET /socket/token` | GET | Get token for Socket connection |
+
+**Alert rate limit:** Streamlabs recommends no more than 2 alerts per minute per user. Source: https://dev.streamlabs.com/reference/alerts
+
+---
+
+### Socket API (Real-Time Events)
+
+This is the reason to use Streamlabs for OIS automation. It fires events in real time as they happen on stream.
+
+**Connect:**
+```javascript
+const io = require('socket.io-client');
+const token = 'your_socket_token'; // from REST API
+const socket = io(`https://sockets.streamlabs.com?token=${token}`, {
+  transports: ['websocket']
+});
+
+socket.on('event', (data) => {
+  const events = JSON.parse(data);
+  events.forEach(event => handleEvent(event));
+});
+```
+
+**Event Types:**
+
+| `type` | `for` | What It Means |
+|---|---|---|
+| `follow` | YouTube/Twitch/Facebook | New follower |
+| `subscription` | YouTube/Twitch | New subscriber/member |
+| `resub` | Twitch | Resubscription with streak |
+| `donation` | Streamlabs | Donation received |
+| `bits` | Twitch | Bits cheered |
+| `superchat` | YouTube | SuperChat received |
+| `host` | Twitch | Channel hosted |
+| `raid` | Twitch | Raid received |
+| `merch` | Streamlabs Merch | Merch purchase (Streamlabs only) |
+
+**Event Payload Example (subscription):**
+```json
+{
+  "type": "subscription",
+  "for": "youtube_account",
+  "message": [{
+    "name": "Jake Hirsch",
+    "months": 1,
+    "message": "First month. Let's go.",
+    "amount": "1",
+    "gifted": false
+  }]
+}
+```
+
+**Rate Limit:** Streamlabs recommends no more than 2 alert triggers per minute to avoid alert queue backup.
+
+---
+
+### OIS Use Cases
+
+**Real-Time OBS Scene Switching:**
+```
+Socket event: new YouTube subscriber
+→ OBS WebSocket: switch to Scrivener welcome scene
+→ Play typewriter animation (Holdt's hands)
+→ Display: "[Name] has wet their quill. Welcome, Scrivener."
+→ After 8 seconds: return to writing scene
+```
+
+**Custom Alert Triggers:**
+```
+Socket event: SuperChat received
+→ Log to Notion: supporter name, amount, message
+→ Trigger Streamlabs custom alert: display message on stream
+```
+
+**Raid Response:**
+```
+Socket event: raid
+→ OBS: switch to Outside Inn warmup scene briefly (welcome the raid)
+→ Discord: post in #announcements that a raid came in
+```
+
+**Note on Streamlabs vs. OBS alerts directly:**
+OBS has its own browser source alerts (via obs-browser alert plugins or custom HTML). Streamlabs adds a managed alert layer on top. For OIS, the custom HTML overlay approach (already proven on Broadcast Alpha) may be cleaner than adding Streamlabs dependency — but Streamlabs is significantly easier for non-engineers. Evaluate both.
+
+---
+
+## 7. Notion
+
+### Primary Sources
+- **API Reference:** https://developers.notion.com/reference
+- **Getting Started:** https://developers.notion.com/docs/getting-started
+- **Webhooks (2025):** https://developers.notion.com/docs/webhooks
+- **MCP Server:** https://github.com/makenotion/notion-mcp-server
+- **Database Query Guide:** https://developers.notion.com/reference/post-database-query
+- **Block Types:** https://developers.notion.com/reference/block
+
+### What It Is
+Notion's API is a REST API that treats everything as pages, blocks, and databases. You can read and write almost everything in Notion programmatically. The MCP server integration with Claude is already live in this project.
+
+---
+
+### Authentication
+Create an "Integration" in Notion developer settings → get an API token → share specific pages/databases with the integration.
+
+**Token:** `Bearer ntn_XXXX...` in Authorization header.
+
+**Required version header:** Every request must include `Notion-Version: 2025-09-03` (current as of March 2026). Omitting this header causes errors. Source: https://developers.notion.com/reference/versioning
+
+**Important:** The integration only sees pages/databases that have been explicitly shared with it. It can't access your whole workspace by default — you must share each database you want it to touch.
+
+---
+
+### Rate Limits
+- ~3 requests/second average (burst allowed)
+- 429 responses if exceeded — use exponential backoff
+- Batch operations where possible
+
+---
+
+### Key Endpoints
+
+**Databases:**
+```
+GET  /v1/databases/{id}                  — Get database schema
+POST /v1/databases/{id}/query            — Query rows (with filters)
+POST /v1/databases                       — Create new database
+PATCH /v1/databases/{id}                 — Update database schema
+```
+
+**Pages (Rows):**
+```
+POST /v1/pages                           — Create new row/page
+PATCH /v1/pages/{id}                     — Update row properties
+GET  /v1/pages/{id}                      — Get page/row data
+DELETE /v1/pages/{id}                    — Archive (soft delete)
+```
+
+**Markdown API (official, as of 2025-09-03 version):**
+```
+GET   /v1/pages/{page_id}/markdown       — Retrieve page content as Markdown
+POST  /v1/pages/markdown                 — Create page from Markdown
+PATCH /v1/pages/{id}/markdown            — Update page content via Markdown
+```
+Source: https://developers.notion.com/reference/retrieve-page-markdown + https://developers.notion.com/guides/data-apis/working-with-markdown-content
+
+**OIS use case:** Pipe ONCE myth drafts (written in Notion) directly to Claude API as Markdown for consistency checks — no manual copy-paste. Also useful for exporting Brand Bible sections programmatically.
+
+**Multi-Source Databases (version 2025-09-03+):**
+Notion now supports databases that pull from multiple sources. If you're using these, API responses include a `data_source_id` field. Automations that write to or query these databases must handle `data_source_id` — omitting it can cause silent failures. Source: https://developers.notion.com/docs/upgrade-guide-2025-09-03
+
+**File Uploads:**
+Small files (guides for ≤20MB): use the standard upload endpoint. Larger files require multipart upload — different flow. Do not assume a single size limit; check the multipart spec before building. Source: https://developers.notion.com/guides/data-apis/uploading-small-files
+
+**Blocks (Content):**
+```
+GET  /v1/blocks/{id}/children            — Get page content blocks
+PATCH /v1/blocks/{id}                    — Update a block
+POST /v1/blocks/{id}/children            — Append blocks to page
+DELETE /v1/blocks/{id}                   — Delete a block
+```
+
+**Search:**
+```
+POST /v1/search                          — Search across workspace (what's shared with integration)
+```
+
+---
+
+### Database Query with Filters
+
+```json
+POST /v1/databases/{id}/query
+{
+  "filter": {
+    "property": "Status",
+    "select": { "equals": "Active" }
+  },
+  "sorts": [
+    { "property": "Joined", "direction": "descending" }
+  ]
+}
+```
+
+Supports complex AND/OR filter combinations, all Notion property types.
+
+---
+
+### Webhooks (2025)
+
+Notion added native webhooks. Fires when pages are created, updated, or deleted in databases you've connected.
+
+**Setup:** Dashboard → Settings → Connections → Automations (or via API).
+
+**Events:**
+- `page.created` — new row added
+- `page.properties_updated` — row edited
+- `page.content_updated` — page body changed
+- `page.deleted` — page archived
+
+**OIS Use Cases:**
+- Watch ONCE writing goals database: when a milestone is marked Complete → trigger Discord announcement
+- Watch Members database: when a new Keeper is manually added → trigger welcome flow
+
+---
+
+### OIS Databases to Build
+
+**Members CRM:**
+| Property | Type | Source |
+|---|---|---|
+| Name | Title | Fourthwall webhook |
+| Email | Email | Fourthwall webhook |
+| Tier | Select (Scrivener/Keeper) | Fourthwall webhook |
+| Joined | Date | Fourthwall webhook |
+| Discord Handle | Text | Manual / Discord bot |
+| Notes | Text | Manual |
+| Founding # | Number | Manual |
+| Active | Checkbox | Fourthwall cancellation webhook |
+
+**Stream Sessions:**
+| Property | Type | Source |
+|---|---|---|
+| Date | Date | OBS StreamStateChanged event |
+| Duration | Number (minutes) | OBS calculation |
+| Writing Goal | Text | Manual pre-stream |
+| ONCE Progress | Select | Manual |
+| Peak Viewers | Number | YouTube Analytics |
+| New Scriveners | Number | Fourthwall webhook count |
+| New Keepers | Number | Fourthwall webhook count |
+| Notes | Text | Manual post-stream |
+
+**ONCE Writing Goals:**
+Already exists presumably — sync completions back via API as they're updated.
+
+---
+
+## 8. Anthropic / Claude
+
+### Primary Sources
+- **API Docs:** https://docs.anthropic.com
+- **Messages API Reference:** https://docs.anthropic.com/en/api/messages
+- **Models:** https://docs.anthropic.com/en/docs/models-overview
+- **Tool Use (Function Calling):** https://docs.anthropic.com/en/docs/tool-use
+- **Batch API:** https://docs.anthropic.com/en/docs/message-batches
+- **Files API:** https://docs.anthropic.com/en/docs/files
+- **MCP Protocol:** https://docs.anthropic.com/en/docs/mcp
+- **Claude.ai Projects:** https://support.claude.ai/hc/en-us/articles/projects
+
+### What It Is
+The Anthropic API gives you programmatic access to Claude models. For OIS this means: automated content processing, brand consistency checks, mythology analysis, overlay generation, stream recap writing — anything that involves language, judgment, or generation.
+
+**This project (Claude.ai Projects) is a different surface than the API — it's the conversational interface with persistent context. Both are relevant.**
+
+---
+
+### Current Models (March 2026)
+
+| Model | API String | Best For |
+|---|---|---|
+| Claude Opus 4.6 | `claude-opus-4-6` | Complex reasoning, long documents, brand bible analysis |
+| Claude Sonnet 4.6 | `claude-sonnet-4-6` | Balanced — most OIS automation use cases |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` | Fast, cheap — high-volume simple tasks |
+
+**Context Window:** 200K tokens standard. 1M token window available with beta header.
+
+---
+
+### Messages API
+
+**Auth:** `x-api-key` header with your API key from console.anthropic.com.
+
+**Base URL:** `https://api.anthropic.com/v1/messages`
+
+**Basic Request:**
+```javascript
+const response = await fetch('https://api.anthropic.com/v1/messages', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01'
+  },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    messages: [
+      { role: 'user', content: 'Your prompt here' }
+    ]
+  })
+});
+```
+
+**System Prompts:**
+```javascript
+{
+  model: 'claude-sonnet-4-6',
+  max_tokens: 1024,
+  system: 'You are the OIS brand assistant. The brand voice is: warm but not soft, direct over diplomatic, earnest without being naïve...',
+  messages: [{ role: 'user', content: '...' }]
+}
+```
+
+**Rate Limits:** Tier-based. Starting tier: ~60 requests/minute, ~100K tokens/minute. Increases with usage and/or paid tier upgrade.
+
+---
+
+### Tool Use (Function Calling)
+
+Claude can call tools you define — useful for having Claude decide when to look something up, update Notion, or trigger an action.
+
+```javascript
+{
+  tools: [{
+    name: 'log_to_notion',
+    description: 'Log stream session data to the Notion stream database',
+    input_schema: {
+      type: 'object',
+      properties: {
+        date: { type: 'string' },
+        duration_minutes: { type: 'number' },
+        writing_goal: { type: 'string' },
+        notes: { type: 'string' }
+      },
+      required: ['date', 'writing_goal']
+    }
+  }],
+  tool_choice: { type: 'auto' }
+}
+```
+
+When Claude uses a tool, you get a `tool_use` block in the response. You execute the tool, then pass the result back for Claude to continue.
+
+---
+
+### Batch API
+
+For non-real-time processing at 50% cost reduction.
+
+```javascript
+POST /v1/messages/batches
+{
+  "requests": [
+    {
+      "custom_id": "stream-recap-20260311",
+      "params": {
+        "model": "claude-sonnet-4-6",
+        "max_tokens": 500,
+        "messages": [{ "role": "user", "content": "Write a stream recap for..." }]
+      }
+    }
+  ]
+}
+```
+
+Process up to 10,000 requests per batch. Results available within 24 hours (usually much faster). Use for: weekly content analysis, monthly report generation, bulk mythology consistency checks.
+
+---
+
+### Files API (Beta)
+
+Upload files once, reference by ID across multiple messages. Up to 350MB per file.
+
+```javascript
+// Upload brand bible once
+const formData = new FormData();
+formData.append('file', fs.createReadStream('brand-bible.md'));
+formData.append('purpose', 'assistants');
+
+const uploadResponse = await fetch('https://api.anthropic.com/v1/files', {
+  method: 'POST',
+  headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY },
+  body: formData
+});
+const { id: fileId } = await uploadResponse.json();
+
+// Reference it in messages without re-uploading
+messages: [{
+  role: 'user',
+  content: [
+    { type: 'document', source: { type: 'file', file_id: fileId } },
+    { type: 'text', text: 'Is this stream description consistent with the brand voice?' }
+  ]
+}]
+```
+
+---
+
+### MCP (Model Context Protocol)
+
+MCP is an open standard that lets Claude connect to external tools and data sources during a conversation. The OIS project already has Google Calendar and Gmail MCP servers connected.
+
+**How it works:** MCP servers expose tools (functions Claude can call). Claude decides when to use them based on context.
+
+**Already connected to this project:**
+- Google Calendar MCP — `https://gcal.mcp.claude.com/mcp`
+- Gmail MCP — `https://gmail.mcp.claude.com/mcp`
+
+**Other useful MCP servers:**
+- Notion MCP — `https://github.com/makenotion/notion-mcp-server` (connect your OIS Notion workspace)
+- GitHub MCP — for overlay code repositories
+
+**Use in API calls:**
+```javascript
+{
+  model: 'claude-sonnet-4-6',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'Add a reminder for the Marwan call Friday at 2pm' }],
+  mcp_servers: [
+    { type: 'url', url: 'https://gcal.mcp.claude.com/mcp', name: 'google-calendar' }
+  ]
+}
+```
+
+---
+
+### Claude.ai Projects — How It Differs from API
+
+| Feature | Claude.ai Project | Anthropic API |
+|---|---|---|
+| Interface | Chat UI (this) | Programmatic HTTP |
+| Context | Project files persist across chats | Each call is stateless (you manage history) |
+| Auth | Your Claude.ai account | API key |
+| Use case | Brand strategy, document work, thinking partner | Automation, integrations, production pipelines |
+| Cost | Claude.ai subscription | Per-token pricing |
+| MCP | Connected via project settings | Passed in request |
+
+**This project (OIS Brand Bible as project file) is the strategic brain.** The API is the automation muscle. They're complementary.
+
+---
+
+### OIS API Use Cases
+
+**Brand Voice Checker:**
+```
+Input: stream description draft
+System: [brand voice guidelines from brand bible]
+Output: revised version + specific notes on what was off-brand
+```
+
+**Stream Recap Generator:**
+```
+Input: stream duration, writing goal, ONCE progress, viewer count
+Output: formatted recap ready to post in Discord #session-notes
+```
+
+**ONCE Consistency Checker:**
+```
+Input: new CHOSEN outline section
+System: [ONCE mythology established in ONCE + MOTHER + BROTHER + WAR + GATE]
+Output: consistency check — does this contradict anything established?
+```
+
+**Monthly Update Video Script:**
+```
+Input: Notion stream sessions data for the month
+Output: First draft script for April 7 monthly update video
+```
+
+**HTML Overlay Development (established working pattern):**
+The Broadcast Alpha overlays (countdown timer, patron roll) were built via Claude pair-programming. This pattern is proven and repeatable. Use for all future OBS overlay work.
+
+---
+
+## 9. Cross-Platform Integration Chains
+
+### Chain 1: New Keeper Joins
+
+```
+Trigger: Fourthwall SUBSCRIPTION_CREATED (tier: Keeper)
+  ↓
+Step 1: Pipedream receiver validates HMAC signature
+  ↓
+Step 2: Discord webhook → #the-keepers
+  Embed: "[Name] has joined the Keepers. Kept, we keep on."
+  Duck family animation note in embed
+  ↓
+Step 3: Notion API → Members CRM
+  Create row: name, email, tier, join date, founding number
+  ↓
+Step 4 (if stream is live): OBS WebSocket
+  Switch to Keeper celebration scene
+  Update text source: "[Name] has joined the Keepers"
+  Return to stream after 10 seconds
+  ↓
+Step 5: OBS WebSocket (async)
+  Update patron roll text with new Keeper name
+```
+
+---
+
+### Chain 2: New Scrivener Joins
+
+```
+Trigger: Fourthwall SUBSCRIPTION_CREATED (tier: Scrivener)
+  ↓
+Step 1: Pipedream validates webhook
+  ↓
+Step 2: Discord webhook → #scriveners
+  Embed: "[Name] has wet their quill. Welcome, Scrivener."
+  ↓
+Step 3: Notion → Members CRM row created
+  ↓
+Step 4 (if stream is live): OBS → Scrivener welcome scene
+  Typewriter animation, 8 seconds, return
+  ↓
+Step 5: OBS → update patron roll with Scrivener name
+```
+
+---
+
+### Chain 3: Pre-Stream Checklist
+
+```
+Trigger: Manual (run script 10 min before stream)
+  ↓
+Check 1: YouTube Data API
+  liveBroadcasts: madeForKids == false?
+  liveBroadcasts: status.lifeCycleStatus?
+  liveBroadcasts: enableLiveChatReplay == true?
+  ↓
+Check 2: OBS WebSocket
+  Current scene == Outside Inn Warmup?
+  Patron roll text source up to date?
+  All audio sources unmuted?
+  ↓
+Check 3: Notion API
+  Today's writing goal populated?
+  ↓
+Output: Terminal report
+  ✅ ALL CLEAR — stream when ready
+  ❌ ISSUES: [list each failure]
+```
+
+---
+
+### Chain 4: Stream Goes Live → Community Alert
+
+```
+Trigger: OBS Event — StreamStateChanged (outputActive: true)
+  ↓
+Step 1: YouTube Live Streaming API
+  Get liveBroadcastId and liveChatId
+  Post chat message: "Writing goal today: [pull from Notion] | Writing, fantasy, and games are destinations."
+  ↓
+Step 2: Discord webhook → #stream-alerts
+  Embed: "🔴 Live now | [writing goal] | [YouTube link] | [Twitch link]"
+  ↓
+Step 3: Notion → Stream Sessions
+  Create new row with date, goal (populate duration when stream ends)
+```
+
+---
+
+### Chain 5: Stream Ends → Session Logging
+
+```
+Trigger: OBS Event — StreamStateChanged (outputActive: false)
+  ↓
+Step 1: YouTube Analytics API (queued — 2-day delay)
+  Schedule pull of peak viewers, watch time, new subscribers
+  ↓
+Step 2: Claude API → Stream Recap
+  Input: session duration, writing goal, scene switch log
+  Output: 2-paragraph recap for Discord
+  ↓
+Step 3: Notion → update Stream Sessions row
+  Duration, recap text
+  ↓
+Step 4: Discord webhook → #session-notes
+  Post Claude-generated recap
+```
+
+---
+
+### Chain 6: ONCE Milestone Completion
+
+```
+Trigger: Notion webhook — ONCE Goals database row updated
+  Filter: Status changed to "Complete"
+  ↓
+Step 1: Extract milestone name (e.g., "CHOSEN [Outline]")
+  ↓
+Step 2: Discord webhook → #outside-inn (public channel)
+  Embed: "✅ CHOSEN [Outline] Complete | 6/7 myths outlined"
+  ↓
+Step 3: Notion → Brand Bible page
+  Append block with completion date
+  ↓
+Step 4 (if scheduled): Claude API
+  Generate social post for next video/clip using milestone as hook
+```
+
+---
+
+## 10. Build Order & Philosophy
+
+### The Philosophy
+
+Every integration must serve one of three purposes:
+1. **Reduce manual work on stream day** — fewer things to forget, fewer things to check
+2. **Make community feel seen** — instant, branded responses when members join
+3. **Capture data that improves next stream** — log everything, review monthly
+
+Build the cheapest valuable thing first. Then layer.
+
+---
+
+### Recommended Build Order
+
+**Phase 1 — Before Wednesday March 11 (if possible)**
+
+| # | Integration | Complexity | Value |
+|---|---|---|---|
+| 1 | Fourthwall → Discord webhook (Pipedream) | Low | High — Keeper/Scrivener alerts |
+| 2 | Fourthwall native Discord role sync | Zero | High — try this first |
+| 3 | YouTube → Discord webhook (stream live alert) | Low | High — community awareness |
+
+**Phase 2 — First Month Athens**
+
+| # | Integration | Complexity | Value |
+|---|---|---|---|
+| 4 | Fourthwall → Notion Members CRM | Low | High — CRM foundation |
+| 5 | OBS WebSocket pre-stream checklist script | Medium | Critical — never miss a check again |
+| 6 | YouTube Analytics → Notion (weekly cron) | Medium | Medium — weekly dashboard |
+
+**Phase 3 — April/May**
+
+| # | Integration | Complexity | Value |
+|---|---|---|---|
+| 7 | OBS WebSocket → Keeper/Scrivener celebration scenes | Medium | High — on-stream moments |
+| 8 | Streamlabs Socket → OBS scene triggers | Medium | Medium — follow/sub events |
+| 9 | Claude API → stream recap generator | Low | Medium — saves time |
+| 10 | Notion MCP → Claude Project | Low | High — brand bible Q&A |
+
+---
+
+### Tools Needed
+
+| Tool | Role | Cost |
+|---|---|---|
+| Pipedream | Webhook receiver + automation logic | Free tier sufficient |
+| OBS Studio 28+ | Already installed | Free |
+| obs-websocket-js or obspython | OBS control library | Free |
+| Anthropic API key | Claude API access | Pay per use |
+| Notion Integration | Already available | Free |
+| Fourthwall API credentials | From dashboard | Free |
+
+---
+
+### No-Infrastructure Starting Point
+
+Before writing a single line of code:
+1. **Fourthwall → Discord:** Set up native Discord integration in Fourthwall dashboard. If that handles role assignment, you're done with that chain at zero complexity.
+2. **Fourthwall → Discord webhook (Pipedream):** Create a Pipedream workflow with a Fourthwall webhook trigger → Discord webhook step. No server. No deployment. 15 minutes.
+3. **YouTube live alert:** When stream goes live, manually paste link in Discord. Automate later.
+
+Get the simple wins first. The complex chains build on a foundation of simpler ones working reliably.
+
+---
+
+*OIS API Intelligence Database — March 2026*
+*Built with Claude | Outside Inn Studios, LLC*
