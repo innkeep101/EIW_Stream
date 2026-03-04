@@ -1,0 +1,531 @@
+# OIS Artist Export Specs — Universal Reference
+
+> **Updated:** Mar 4, 2026 | Living Document
+>
+> **Purpose:** Single source of truth for artwork preparation, resolution requirements, and export specifications across all Outside Inn Studios products and platforms. Artist-agnostic — applies to any current or future OIS collaborator. Designed for GitHub storage, human reference, and AI project context. When something changes, a new version gets written.
+
+---
+
+## Table of Contents
+
+- [Before You Start — Canvas Planning](#before-you-start--canvas-planning)
+- [The Master Canvas Strategy](#the-master-canvas-strategy)
+- [Color — RGB vs CMYK](#color--rgb-vs-cmyk)
+- [Fourthwall General Requirements](#fourthwall-general-requirements)
+- [Print Products — Desk Mats](#print-products--desk-mats)
+- [Print Products — Mouse Pads](#print-products--mouse-pads)
+- [Print Products — Coasters](#print-products--coasters)
+- [Print Products — Posters & Prints (Unframed)](#print-products--posters--prints-unframed)
+- [Print Products — Framed Posters](#print-products--framed-posters)
+- [Print Methods & What They Mean for Art](#print-methods--what-they-mean-for-art)
+- [Digital Platform Assets](#digital-platform-assets)
+- [OBS Stream Overlays](#obs-stream-overlays)
+- [DPI by Viewing Distance](#dpi-by-viewing-distance)
+- [AI Upscaling — When It Works and When It Doesn't](#ai-upscaling--when-it-works-and-when-it-doesnt)
+- [File Naming Convention](#file-naming-convention)
+- [Delivery Folder Structure](#delivery-folder-structure)
+- [Export Checklist](#export-checklist)
+- [Sources](#sources)
+
+---
+
+## Before You Start — Canvas Planning
+
+The most impactful decisions happen before the first brushstroke. Resolution problems, bad crops, and color mismatches are almost always caused by choices made at canvas creation — not at export.
+
+**Rule 1 — Start big.** It is always possible to scale down. It is never possible to scale up without quality loss. If there is any chance the artwork will appear on a desk mat (largest OIS product), the canvas must accommodate it from the start.
+
+**Rule 2 — Compose for crops.** A single OIS painting may appear on a 31.5-inch wide desk mat, a 10×10 square print, a 4-inch coaster, and a YouTube banner — all at different aspect ratios. Keep the focal point in the center third of the composition. Leave enough secondary elements and negative space around the subject that landscape, portrait, and square crops all retain compositional integrity.
+
+**Rule 3 — Overlay your crop targets on the sketch.** Before committing to the final painting, draw rectangles representing each target product format on top of the sketch. Verify that the key subject survives every anticipated crop. This takes five minutes and prevents weeks of rework.
+
+**Rule 4 — Work in RGB.** Paint in RGB with CMYK soft-proofing enabled (Photoshop: View → Proof Colors). Convert to CMYK only at the final export stage. This preserves the widest color gamut during the creative process. See [Color — RGB vs CMYK](#color--rgb-vs-cmyk).
+
+**Rule 5 — Set display brightness to 50–60%.** Especially on iPad/Procreate. Backlit screens are significantly brighter than printed output. Painting at full brightness virtually guarantees disappointment with print results.
+
+---
+
+## The Master Canvas Strategy
+
+Create one master file large enough to cover every product. From it, derive all product-specific exports.
+
+**Recommended master canvas:**
+
+- **Minimum:** 13,500px on the long edge at 300 PPI
+- **Ideal:** 15,000 × 9,000px at 300 PPI (landscape)
+- **Format:** PSD or TIFF, layered, RGB
+- **Color profile:** sRGB IEC61966-2.1 or Display P3
+
+This single canvas covers every current OIS Fourthwall product at 300 DPI except the 24×36 poster (which needs 7,200 × 10,800px and should be treated as a separate deliverable if required).
+
+**Three derived assets from one master:**
+
+- **Landscape:** ~15,000 × 9,000px (desk mats, banners, gaming pads)
+- **Square:** ~9,000 × 9,000px (10×10 prints, coasters, profile pics)
+- **Portrait:** ~7,200 × 10,800px (18×24 posters — requires planning or separate composition)
+
+The landscape-to-portrait crop is the hardest problem. Four approaches in order of preference:
+
+1. **Pre-planned composition** — design with generous space so both orientations retain the subject
+2. **Product-specific variations** — create distinct compositions for landscape vs portrait formats
+3. **Pattern/mirror techniques** — duplicate and mirror motifs for extreme aspect ratios (desk mats)
+4. **Content-Aware extension** — Photoshop can stretch simple backgrounds, but only works with uniform areas
+
+---
+
+## Color — RGB vs CMYK
+
+**The rule: Work in RGB. Export to CMYK.**
+
+RGB files are smaller (3 channels vs 4), preserve a wider color gamut during editing, and can be reused for screen output without color loss. This is the modern professional standard for print-on-demand workflows.
+
+**Practical workflow (Photoshop):**
+
+1. Paint in RGB with View → Proof Colors (Cmd+Y) set to Working CMYK
+2. Use View → Gamut Warning to flag out-of-gamut colors
+3. Deep blues, saturated reds, and bright oranges are the most common offenders
+4. When ready to export: save the RGB master first
+5. Duplicate the file, convert via Edit → Convert to Profile (not Image → Mode)
+6. Save the CMYK version as a separate deliverable
+
+**Exception — Fine art giclée prints (posters):** Stay in sRGB even for the final print file. Modern inkjet printers use 8–12 ink tanks that reproduce a broader gamut than CMYK. Fourthwall's poster products use digital inkjet printing, making RGB the better color space for these.
+
+**For Procreate users:** Set canvas to actual print dimensions at 300 PPI. Choose sRGB for maximum compatibility. Set iPad brightness to 50–60% while painting to simulate print luminance.
+
+**For sublimation products (desk mats, mouse pads, coasters):** Colors will print darker and less saturated than screen previews. Deliberately push brightness and saturation 10–15% beyond your target appearance during the painting process.
+
+---
+
+## Fourthwall General Requirements
+
+These apply across all Fourthwall product types.
+
+**File format:** PNG (preferred) or JPEG. TIFF is not supported. PNG is required for any product needing transparency (apparel, stickers).
+
+**Resolution:** 300 DPI recommended universally. 200 DPI is the absolute floor for DTG garments. Fourthwall's editor shows a quality indicator during upload: blue = high quality, yellow = fair, red = too low.
+
+**Transparency:** Use PNG with fully transparent backgrounds where needed. Avoid semi-transparent elements, glow effects, gradients-to-transparent, and fade effects entirely — they do not translate reliably across any print method.
+
+**Bleed:** Fourthwall's editor shows a dotted-line print-safe area boundary. Extend background artwork beyond it. Any critical elements (text, logos, faces) should stay well inside the safe area.
+
+**Upload size:** Fourthwall's max upload is generous, but aim to keep files under 25 MB per export for smooth uploading.
+
+**DPI math reference:** Pixels = Inches × DPI. So a 10×10 inch product at 300 DPI = 3,000 × 3,000 pixels.
+
+---
+
+## Print Products — Desk Mats
+
+Desk mats are OIS's highest-margin product. All use sublimation printing (edge-to-edge, dye-into-material). Manufactured by Spoke.
+
+### Small — 12 × 18 inches
+
+| Field | Value |
+|---|---|
+| Print area | 12″ × 18″ |
+| Thickness | 4mm |
+| Aspect ratio | 2:3 |
+| Pixels at 300 DPI | 3,600 × 5,400 |
+| Pixels at 200 DPI | 2,400 × 3,600 |
+
+### Medium — 12 × 22 inches
+
+| Field | Value |
+|---|---|
+| Print area | 12″ × 22″ |
+| Thickness | 3mm |
+| Aspect ratio | ~6:11 |
+| Pixels at 300 DPI | 3,600 × 6,600 |
+| Pixels at 200 DPI | 2,400 × 4,400 |
+
+### Large — 15.5 × 31.5 inches
+
+| Field | Value |
+|---|---|
+| Print area | 15.5″ × 31.5″ |
+| Thickness | 3mm |
+| Aspect ratio | ~1:2 |
+| Pixels at 300 DPI | 4,650 × 9,450 |
+| Pixels at 200 DPI | 3,100 × 6,300 |
+
+**Notes:** The large desk mat is the most pixel-hungry product in the OIS catalog. A 9,450px-wide file is the target. The 15,000 × 9,000 master canvas covers this. At typical arm's-length viewing distance (24–30 inches), 200 DPI is visually indistinguishable from 300 DPI — so 6,300 × 3,100 is the practical minimum.
+
+Sublimation prints darker and less saturated than screen. Push colors slightly brighter.
+
+---
+
+## Print Products — Mouse Pads
+
+All mouse pads use sublimation printing. Manufactured by Printful.
+
+### Classic Mouse Pad
+
+| Field | Value |
+|---|---|
+| Print area | 8.7″ × 7.1″ |
+| Thickness | 3mm |
+| Aspect ratio | ~1.22:1 (nearly square) |
+| Pixels at 300 DPI | 2,610 × 2,130 |
+
+### Gaming Mouse Pad — Medium
+
+| Field | Value |
+|---|---|
+| Print area | 18″ × 16″ |
+| Thickness | 4mm |
+| Aspect ratio | 9:8 |
+| Pixels at 300 DPI | 5,400 × 4,800 |
+
+### Gaming Mouse Pad — Large
+
+| Field | Value |
+|---|---|
+| Print area | 36″ × 18″ |
+| Thickness | 4mm |
+| Aspect ratio | 2:1 |
+| Pixels at 300 DPI | 10,800 × 5,400 |
+
+**Notes:** The large gaming mouse pad (36 × 18) is the single largest product by pixel count at 300 DPI. It requires a wider master canvas than the desk mat. If offering this product, the master canvas should be at least 10,800px wide — or accept 200 DPI (7,200 × 3,600px) given the arm's-length viewing distance.
+
+---
+
+## Print Products — Coasters
+
+### Glossed Cork Coaster
+
+| Field | Value |
+|---|---|
+| Print area | 3.74″ × 3.74″ (square) |
+| Construction | Cork back, MDF core, gloss top |
+| Pixels at 300 DPI | 1,122 × 1,122 |
+| Pixels at 200 DPI | 748 × 748 |
+
+**Notes:** Fourthwall's coaster is cork-backed with gloss coating — not ceramic. Small physical size means almost any master canvas provides more than enough resolution. However, coasters are held close (12–18 inches), so they need the full 300 DPI. Crop detail-rich areas for coasters — they reward close-up interest.
+
+---
+
+## Print Products — Posters & Prints (Unframed)
+
+Enhanced Matte Paper. Digital inkjet printing (giclée quality). 189 g/m² paper, 10.3 mil thick, 94% opacity. Manufactured by Printful.
+
+Available in 14 sizes from 5×7 through 24×36. OIS currently sells three:
+
+### 10 × 10 inches (Square)
+
+| Field | Value |
+|---|---|
+| Print area | 10″ × 10″ |
+| Aspect ratio | 1:1 |
+| Pixels at 300 DPI | 3,000 × 3,000 |
+
+### 18 × 24 inches (Portrait)
+
+| Field | Value |
+|---|---|
+| Print area | 18″ × 24″ |
+| Aspect ratio | 3:4 |
+| Pixels at 300 DPI | 5,400 × 7,200 |
+| Pixels at 200 DPI | 3,600 × 4,800 |
+
+### 24 × 36 inches (Portrait)
+
+| Field | Value |
+|---|---|
+| Print area | 24″ × 36″ |
+| Aspect ratio | 2:3 |
+| Pixels at 300 DPI | 7,200 × 10,800 |
+| Pixels at 200 DPI | 4,800 × 7,200 |
+
+**Notes:** Posters use digital inkjet — the most color-accurate method. Stay in sRGB for these exports rather than CMYK. Large posters (18×24 and up) are viewed from 3+ feet, so 200 DPI is the practical quality threshold. See [DPI by Viewing Distance](#dpi-by-viewing-distance).
+
+Portrait-orientation posters from landscape source art require either pre-planned composition, creative cropping, or a separate portrait version. This cannot be solved at export time — it must be designed at the sketch stage.
+
+---
+
+## Print Products — Framed Posters
+
+Framed High-Quality Matte Poster. 260 g/m² paper (heavier than unframed). 0.75″ Ayous wood frame. Acrylite front protector. Manufactured by Printful.
+
+Pixel requirements are identical to unframed posters (same print area). Available in 12 sizes. OIS currently sells two:
+
+### 10 × 10 inches (Framed)
+
+| Field | Value |
+|---|---|
+| Print area | 10″ × 10″ |
+| Frame | 0.75″ Ayous wood |
+| Pixels at 300 DPI | 3,000 × 3,000 |
+
+### 18 × 24 inches (Framed)
+
+| Field | Value |
+|---|---|
+| Print area | 18″ × 24″ |
+| Frame | 0.75″ Ayous wood |
+| Pixels at 300 DPI | 5,400 × 7,200 |
+
+**Notes:** Cannot ship to Australia (wood import regulations). The frame adds visual border, so the printed art can extend to the edge without concern about handling damage. Same export file works for both framed and unframed versions of the same size.
+
+---
+
+## Print Methods & What They Mean for Art
+
+Understanding the print method tells the artist what to expect and what to avoid.
+
+### Sublimation (Desk Mats, Mouse Pads, Coasters)
+
+Embeds dye into the material using heat transfer. Edge-to-edge coverage. Vibrant on white/light substrates. Gradients work well — most forgiving method for painterly artwork. **Colors print darker and less saturated than screen.** Compensate by pushing brightness and saturation 10–15%.
+
+### Digital Inkjet / Giclée (Posters, Art Prints)
+
+Water-based inkjet at 300 DPI. Most color-accurate method. Handles gradients, subtle tonal shifts, and fine detail well. Stay in sRGB for these — modern inkjet printers reproduce a wider gamut than CMYK.
+
+### DTG — Direct to Garment (T-shirts, Lightweight Apparel)
+
+Sprays ink into fabric fibers. Soft, breathable prints. Works well on light fabrics. On dark garments, a white underbase prints first — whites may appear slightly faded. Red ink is problematic on dark fabrics (switch to DTFx for reds on dark). Minimum 200 DPI. Minimum 5,000 × 5,000px upload. PNG with transparent background required.
+
+### DTFx — Direct to Film Express (Hoodies, Heavyweight Apparel)
+
+Prints onto a 0.1mm film bonded to fabric. Brighter, more vibrant than DTG — close to screen printing quality. Film is not breathable, so best on midweight and heavyweight garments. Transparent background PNG required. Avoid large solid fills on lightweight tees. Break up designs with negative space. Minimum text size: 1mm / 4pt.
+
+### Screen Printing (MOQ Products Only)
+
+Highest garment quality — same technique as major retailers. Requires minimum order quantities. PNG only, 300 DPI minimum. Avoid gradients entirely. Use solid, well-defined shapes.
+
+### Embroidery
+
+Stitches artwork into fabric. Maximum 5–6 thread colors from a 15-color palette. Minimum line thickness: 0.05″ (4pt). Minimum uppercase text height: 0.3″. Standard area: 15,000 stitches across 4″ × 4″. Gradients, photorealistic images, and fine detail are incompatible.
+
+---
+
+## Digital Platform Assets
+
+All digital assets should be exported as PNG in sRGB at exact platform dimensions. No bleed needed. Optimize for file size (use PNG-8 for simple graphics, PNG-24/32 for complex art with transparency).
+
+### YouTube
+
+| Asset | Dimensions | Notes |
+|---|---|---|
+| Banner (upload) | 2560 × 1440px | Full canvas for TV display |
+| Banner safe zone | 1546 × 423px | Centered. All text/logos here. |
+| Banner (desktop) | 2560 × 423px | Full width, cropped top/bottom |
+| Profile picture | 800 × 800px | Displayed as circle |
+| Thumbnail | 1280 × 720px | Max 2 MB |
+
+**YouTube banner is the trickiest asset.** Upload the full 2560 × 1440 canvas, but design all critical content within the 1546 × 423 centered safe zone — the only area guaranteed visible on mobile, tablet, desktop, and TV. Everything outside the safe zone is background.
+
+### Twitch
+
+| Asset | Dimensions | Notes |
+|---|---|---|
+| Banner | 1200 × 480px | 1920 × 480 for retina |
+| Profile picture | 800 × 800px | Min 256 × 256, circle crop |
+| Offline screen | 1920 × 1080px | |
+
+### Discord
+
+| Asset | Dimensions | Notes |
+|---|---|---|
+| Server banner | 960 × 540px | Top ~28% overlapped by name |
+| Server icon | 512 × 512px | Circle crop |
+
+### Other Platforms
+
+| Platform | Asset | Dimensions |
+|---|---|---|
+| Instagram | Profile pic | 320 × 320px (circle) |
+| Instagram | Feed (square) | 1080 × 1080px |
+| Instagram | Feed (portrait) | 1080 × 1350px (4:5) |
+| Instagram | Stories/Reels | 1080 × 1920px (9:16) |
+| TikTok | Profile pic | 1080 × 1080px (circle) |
+| X/Twitter | Header | 1500 × 500px |
+| X/Twitter | Profile pic | 400 × 400px (circle) |
+| Facebook | Page cover | 851 × 315px |
+| Facebook | Profile pic | 320 × 320px (circle) |
+
+---
+
+## OBS Stream Overlays
+
+### Canvas
+
+Overlays must match the OBS Base (Canvas) Resolution exactly. For OIS, this is **1920 × 1080px**. If streaming at 1440p in the future, overlays would need to be 2560 × 1440px.
+
+### Format
+
+**PNG-32 (RGBA)** — 8 bits per channel across Red, Green, Blue, and Alpha. In Photoshop, this is "PNG-24" with "Transparency" checked. PNG-8 only supports binary (on/off) transparency with jagged edges — unsuitable for anti-aliased curves or semi-transparent panels. JPEG cannot carry transparency.
+
+### Color Profile
+
+**sRGB IEC61966-2.1.** OBS performs no color management or ICC profile conversion. Exporting in Adobe RGB or Display P3 will produce desaturated, color-shifted results on stream.
+
+### Performance
+
+Static PNG overlays have negligible performance impact. A typical 1920 × 1080 PNG-32 runs 500 KB to 5 MB and composites trivially on the GPU once loaded. The real performance concerns are animated overlays (video decode), browser sources running JavaScript, and excessive scene nesting (each nested scene adds ~4–8% GPU load).
+
+Separate overlay elements into individual PNG files for independent toggling via Stream Deck.
+
+---
+
+## DPI by Viewing Distance
+
+The human eye stops resolving additional detail at a distance determined by the formula: **DPI = 3,438 ÷ viewing distance in inches.** This means large products viewed from far away need far fewer pixels than small products held up close.
+
+| Product | Typical distance | Required DPI | Practical minimum pixels |
+|---|---|---|---|
+| Coaster | 12–18″ (hand) | 250–300 | 1,122 × 1,122 |
+| Classic Mouse Pad | 18–24″ (desk) | 200–300 | 2,610 × 2,130 |
+| Gaming Mouse Pad | 18–24″ (desk) | 200–300 | 5,400 × 4,800 |
+| Desk Mat | 24–30″ (arm) | 150–250 | 3,100 × 6,300 (200 DPI) |
+| 10×10 Poster | 2–3 ft (wall) | 150–200 | 2,000 × 2,000 |
+| 18×24 Poster | 3–5 ft (wall) | 100–150 | 3,600 × 4,800 (200 DPI) |
+| 24×36 Poster | 4–6 ft (wall) | 75–120 | 4,800 × 7,200 (200 DPI) |
+
+**Always upload the highest resolution available.** Fourthwall handles downsampling. These minimums are for evaluating whether a source file is usable — not export targets.
+
+---
+
+## AI Upscaling — When It Works and When It Doesn't
+
+AI upscaling at **2× to 4× magnification** from a clean source produces reliable print-quality results. Beyond 4×, quality degrades rapidly — outputs develop a waxy, plastic appearance as the algorithm invents detail that doesn't exist in the source.
+
+### When to use it
+
+- Source is clean, sharp, and artifact-free
+- Target magnification is 2–4×
+- Product is viewed at arm's length or farther (desk mats, posters)
+- Source was high quality to begin with
+
+### When not to use it
+
+- Source is heavily compressed, noisy, or blurry
+- Target magnification exceeds 4×
+- Product is handheld (coasters, phone cases)
+- Text is present (AI garbles letterforms at high magnification)
+- Source is pixel art (AI "smooths" intentional pixel edges)
+
+### Artifacts to inspect at 100% zoom
+
+- **Plastic/waxy texture** replacing natural detail
+- **Haloing** — bright outlines around high-contrast edges
+- **Text corruption** — garbled or misshapen letters
+- **Gradient banding** — smooth gradients breaking into steps
+- **Texture hallucination** — AI inventing repeating patterns
+
+### QA workflow
+
+1. Clean and denoise the source first
+2. Upscale
+3. Apply light sharpening last
+4. Never sharpen before upscaling — AI magnifies sharpening halos
+5. Inspect at 100% zoom before committing to production
+
+---
+
+## File Naming Convention
+
+Consistent naming prevents mix-ups when managing dozens of exports from a single painting.
+
+**Structure:**
+
+`[ArtworkTitle]_[ProductType]_[Dimensions]_[ColorMode]_v[##].png`
+
+**Examples:**
+
+- `MoonlitForest_DeskMat_15x31_CMYK_v01.png`
+- `MoonlitForest_Poster_10x10_sRGB_v01.png`
+- `MoonlitForest_YTBanner_2560x1440_sRGB_v01.png`
+- `MoonlitForest_Master_15000x9000_RGB.psd`
+
+**Rules:**
+
+- Underscores, not spaces
+- Leading zeros on version numbers (v01, v02)
+- ISO dates if needed: YYYYMMDD
+- Keep filenames under 50 characters where possible
+- Never edit the exports — return to the master file for changes, then re-export
+
+---
+
+## Delivery Folder Structure
+
+When delivering to OIS, organize files as follows:
+
+```
+ProjectName/
+├── Source/          (master PSD/TIFF, all layers, RGB)
+├── Print/           (flattened, CMYK where needed, per product)
+├── Digital/         (sRGB, web-optimized, social crops)
+├── Overlays/        (1920×1080 PNG-32, sRGB, transparent)
+└── Reference/       (mockups, crop guides, notes)
+```
+
+Per OIS collaborator contracts, source files (PSD/native format with layers) are required deliverables alongside finished exports.
+
+---
+
+## Export Checklist
+
+Run through this before delivering any file to OIS.
+
+**For print products:**
+
+- [ ] Resolution is 300 DPI (or minimum 200 DPI for large-format)
+- [ ] Pixel dimensions match the target product exactly
+- [ ] File is PNG (or JPEG if no transparency needed)
+- [ ] CMYK conversion done from RGB master (not painted in CMYK)
+- [ ] Colors pushed slightly brighter for sublimation products
+- [ ] Background extends beyond safe area for full bleed
+- [ ] No critical elements (text, faces, logos) near edges
+- [ ] No semi-transparent effects, glows, or fade-to-transparent
+- [ ] Inspected at 100% zoom for artifacts
+- [ ] File named per convention
+
+**For digital assets:**
+
+- [ ] Exact platform dimensions (no "close enough")
+- [ ] sRGB color profile
+- [ ] PNG format (PNG-32 if transparency needed)
+- [ ] Critical content within platform safe zones
+- [ ] File size under 2 MB for thumbnails, under 6 MB for banners
+
+**For overlays:**
+
+- [ ] Exactly 1920 × 1080px (or current OBS canvas size)
+- [ ] PNG-32 with alpha transparency
+- [ ] sRGB IEC61966-2.1
+- [ ] Separate elements as individual files for Stream Deck toggling
+- [ ] Tested in OBS before delivery
+
+**For all deliverables:**
+
+- [ ] Layered source file (PSD/native) included
+- [ ] Consistent file naming across all exports
+- [ ] Folder structure matches delivery template
+- [ ] Master RGB file preserved (never overwritten by CMYK conversion)
+
+---
+
+## Sources
+
+This document synthesizes information from:
+
+- Fourthwall Help Center — Artwork Best Practices (help.fourthwall.com)
+- Fourthwall Help Center — How Do I Design a New Product
+- Fourthwall Help Center — DTFx Printing Technique
+- Fourthwall Help Center — Embroidery Best Practices
+- Fourthwall Help Center — Stickers Best Practices
+- Fourthwall Help Center — Mug Design Best Practices
+- Fourthwall Product Pages — Desk Mat, Coaster, Enhanced Matte Poster, Framed Poster
+- Fourthwall Blog — Choosing the Right Production Method
+- Printful — Print File Preparation Guide
+- Society6 Blog — How to Prepare Art Files for Printing
+- Professional pre-press resources (Nukefactory, Print Handbook, MCAD)
+- OBS Project documentation and community forums
+- YouTube, Twitch, Discord, Instagram official dimension guides
+
+*Last verified against Fourthwall documentation: March 4, 2026.*
+
+---
+
+*Updated Mar 4, 2026. Source: Fourthwall help center, Fourthwall product pages, professional pre-press guides, OIS brand bible, OIS hardware master, first merch sample feedback (Mar 3 desk mat + goose print).*
